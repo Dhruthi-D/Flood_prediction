@@ -33,3 +33,43 @@ export async function postPrediction(payload) {
 
   return body;
 }
+
+// City search endpoint
+export async function searchCities(query) {
+  if (!query || query.length < 1) {
+    return { cities: [] };
+  }
+  
+  const res = await fetch(
+    `http://127.0.0.1:8000/cities?query=${encodeURIComponent(query)}`
+  );
+  
+  if (!res.ok) {
+    throw new Error(`Failed to search cities: ${res.status}`);
+  }
+  
+  return await res.json();
+}
+
+// Location validation endpoint
+export async function validateLocation(locationData) {
+  const res = await fetch(`http://127.0.0.1:8000/validate-location`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(locationData),
+  });
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch (e) {
+    // non-json response
+  }
+
+  if (!res.ok) {
+    const msg = (body && (body.detail || body.error)) || `Request failed (${res.status})`;
+    throw new Error(msg);
+  }
+
+  return body;
+}

@@ -1,10 +1,12 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 import numpy as np
 import requests
-from model_loader import predict, get_feature_importances, get_feature_names, explain_instance
-from schemas import WeatherInput, PredictionOutput
+import re
 import logging
+from model_loader import predict, get_feature_importances, get_feature_names, explain_instance
+from schemas import WeatherInput, PredictionOutput, LocationValidationRequest, LocationValidationResponse
+from city_loader import search_cities, city_exists
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -84,6 +86,73 @@ def predict_flood(data: WeatherInput):
         logger.exception("Error during prediction: %s", e)
         # Return HTTP error so frontend can show meaningful message
         raise HTTPException(status_code=500, detail="Prediction failed on server")
+
+
+# --------------------------------------------------
+# City Search and Location Validation Endpoints
+# --------------------------------------------------
+@app.get("/cities")
+def get_cities(query: str = Query(..., min_length=1, description="Search query for city names")):
+    """
+    Search cities by query (autocomplete endpoint).
+    Returns up to 10 matching city names from Cities.csv.
+    """
+    try:
+        results = search_cities(query, limit=10)
+        return {"cities": results}
+    except Exception as e:
+        logger.exception("Error searching cities: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to search cities")
+
+
+@app.post("/validate-location", response_model=LocationValidationResponse)
+def validate_location(data: LocationValidationRequest):
+    """
+    Validate location input (either city name or coordinates).
+    - City must exist in Cities.csv
+    - Coordinates must be valid (latitude: -90 to 90, longitude: -180 to 180)
+    """
+    try:
+        # Check if city is provided
+        if data.city:
+            city_name = data.city.strip()
+            if city_exists(city_name):
+                return LocationValidationResponse(
+                    valid=True,
+                    message=f"City '{city_name}' is valid",
+                    location_type="city"
+                )
+            else:
+                return LocationValidationResponse(
+                    valid=False,
+                    message=f"City '{city_name}' not found in database",
+                    location_type="city"
+                )
+        
+        # Check if coordinates are provided
+        elif data.latitude is not None and data.longitude is not None:
+            # Validation is already done by Pydantic validators
+            return LocationValidationResponse(
+                valid=True,
+                message="Coordinates are valid",
+                location_type="coordinates"
+            )
+        
+        # This should not happen due to Pydantic validation, but just in case
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Either city or coordinates must be provided"
+            )
+    
+    except ValueError as e:
+        # Handle Pydantic validation errors
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.exception("Error validating location: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to validate location")
+
+
 def fetch_live_weather(lat: float, lon: float):
     url = (
         "https://api.open-meteo.com/v1/forecast"
@@ -136,27 +205,30 @@ def explain_instance_route(data: WeatherInput):
     except Exception as e:
         logger.exception("Explainability error: %s", e)
         raise HTTPException(status_code=500, detail="Explainability failed on server")
-def fetch_live_weather(lat: float, lon: float):
-    url = (
-        "https://api.open-meteo.com/v1/forecast"
-        f"?latitude={lat}&longitude={lon}"
-        "&current=temperature_2m,relative_humidity_2m,"
-        "pressure_msl,wind_speed_10m,precipitation"
-    )
-
-    response = requests.get(url)
-    data = response.json()["current"]
-
-    return {
-        "temperature": data["temperature_2m"],
-        "humidity": data["relative_humidity_2m"],
-        "pressure": data["pressure_msl"],
-        "wind_speed": data["wind_speed_10m"],
-        "rainfall": data["precipitation"]
-    }
 
 
 def get_lat_lon(place: str):
+    """
+    Get latitude and longitude from a place name or coordinates.
+    If place is in format "lat,lon", parse it directly.
+    Otherwise, use geocoding API.
+    """
+    # Check if place is in coordinate format (e.g., "12.922, 77.505")
+    coord_pattern = r'^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$'
+    if re.match(coord_pattern, place.strip()):
+        # Parse coordinates directly
+        parts = [p.strip() for p in place.split(',')]
+        if len(parts) == 2:
+            try:
+                lat = float(parts[0])
+                lon = float(parts[1])
+                # Validate ranges
+                if -90 <= lat <= 90 and -180 <= lon <= 180:
+                    return lat, lon
+            except ValueError:
+                pass
+    
+    # Use geocoding API for place names
     url = f"https://geocoding-api.open-meteo.com/v1/search?name={place}&count=1"
     response = requests.get(url).json()
 

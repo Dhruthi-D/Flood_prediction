@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { getLivePrediction, get3DayForecast, postPrediction } from "../services/api";
+import { getLivePrediction, get3DayForecast, postPrediction, validateLocation } from "../services/api";
 import "./Dashboard.css";
 import ForecastChart from "../components/ForecastChart";
+import LocationSelector from "../components/LocationSelector";
 
 export default function Dashboard() {
-  const [place, setPlace] = useState("");
+  const [location, setLocation] = useState(null); // { type: "city"|"coordinates", value: string|{latitude, longitude} }
   const [activeTab, setActiveTab] = useState("live");
   const [live, setLive] = useState(null);
   const [forecast, setForecast] = useState([]);
@@ -25,11 +26,53 @@ export default function Dashboard() {
     temp_anomaly: "0.0",
   });
 
+  // Convert location to place string for API calls
+  const getPlaceString = () => {
+    if (!location) return null;
+    
+    if (location.type === "city") {
+      return location.value;
+    } else if (location.type === "coordinates") {
+      // For coordinates, format as "lat,lon" for the existing API (no spaces)
+      return `${location.value.latitude},${location.value.longitude}`;
+    }
+    return null;
+  };
+
   const runLive = async () => {
-    if (!place.trim()) {
-      setError("Please enter a location");
+    if (!location) {
+      setError("Please select a location");
       return;
     }
+    
+    // Validate location first
+    try {
+      let validationData;
+      if (location.type === "city") {
+        validationData = { city: location.value };
+      } else {
+        validationData = {
+          latitude: location.value.latitude,
+          longitude: location.value.longitude
+        };
+      }
+      
+      const validation = await validateLocation(validationData);
+      if (!validation.valid) {
+        setError(validation.message);
+        return;
+      }
+    } catch (err) {
+      setError(err.message || "Location validation failed");
+      return;
+    }
+    
+    const place = getPlaceString();
+    if (!place) {
+      setError("Invalid location format");
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
@@ -43,10 +86,39 @@ export default function Dashboard() {
   };
 
   const runForecast = async () => {
-    if (!place.trim()) {
-      setError("Please enter a location");
+    if (!location) {
+      setError("Please select a location");
       return;
     }
+    
+    // Validate location first
+    try {
+      let validationData;
+      if (location.type === "city") {
+        validationData = { city: location.value };
+      } else {
+        validationData = {
+          latitude: location.value.latitude,
+          longitude: location.value.longitude
+        };
+      }
+      
+      const validation = await validateLocation(validationData);
+      if (!validation.valid) {
+        setError(validation.message);
+        return;
+      }
+    } catch (err) {
+      setError(err.message || "Location validation failed");
+      return;
+    }
+    
+    const place = getPlaceString();
+    if (!place) {
+      setError("Invalid location format");
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
@@ -56,12 +128,6 @@ export default function Dashboard() {
       setError("Failed to fetch forecast. Please try again.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      activeTab === "live" ? runLive() : runForecast();
     }
   };
 
@@ -130,18 +196,12 @@ export default function Dashboard() {
   return (
     <div className="dashboard">
       <div className="dashboard-container">
-        {/* Search Section */}
+        {/* Location Selector Section */}
         <div className="search-section">
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="🔍 Enter city or location..."
-              value={place}
-              onChange={(e) => setPlace(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="search-input"
-            />
-          </div>
+          <LocationSelector
+            onLocationSelect={setLocation}
+            selectedLocation={location}
+          />
           {error && <div className="error-message">{error}</div>}
         </div>
 

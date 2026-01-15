@@ -14,3 +14,7 @@ dist/
 
 # OS
 .DS_Store
+
+flood.ipynb
+EMD_data.xlsx
+nasa(India).csv

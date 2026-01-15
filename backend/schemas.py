@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, model_validator
+from typing import Optional, Union
 
 class WeatherInput(BaseModel):
     # Core weather inputs
@@ -18,3 +18,50 @@ class WeatherInput(BaseModel):
 class PredictionOutput(BaseModel):
     probability: float
     risk_level: str
+
+
+class LocationValidationRequest(BaseModel):
+    """Request model for location validation - accepts either city or coordinates"""
+    city: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    
+    @field_validator('latitude')
+    @classmethod
+    def validate_latitude(cls, v):
+        if v is not None:
+            if not (-90 <= v <= 90):
+                raise ValueError('Latitude must be between -90 and 90')
+        return v
+    
+    @field_validator('longitude')
+    @classmethod
+    def validate_longitude(cls, v):
+        if v is not None:
+            if not (-180 <= v <= 180):
+                raise ValueError('Longitude must be between -180 and 180')
+        return v
+    
+    @model_validator(mode='after')
+    def validate_exactly_one(self):
+        """Ensure either city OR coordinates are provided, not both"""
+        city = self.city
+        lat = self.latitude
+        lon = self.longitude
+        
+        has_city = city is not None and str(city).strip() != ""
+        has_coords = lat is not None and lon is not None
+        
+        if not has_city and not has_coords:
+            raise ValueError('Either city or coordinates (latitude and longitude) must be provided')
+        if has_city and has_coords:
+            raise ValueError('Cannot provide both city and coordinates. Use either city OR coordinates.')
+        
+        return self
+
+
+class LocationValidationResponse(BaseModel):
+    """Response model for location validation"""
+    valid: bool
+    message: str
+    location_type: Optional[str] = None  # "city" or "coordinates"
