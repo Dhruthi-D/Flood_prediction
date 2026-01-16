@@ -5,8 +5,10 @@ import requests
 import re
 import logging
 from model_loader import predict, get_feature_importances, get_feature_names, explain_instance
-from schemas import WeatherInput, PredictionOutput, LocationValidationRequest, LocationValidationResponse
+from simulation_engine import simulate_flood
+from schemas import WeatherInput, PredictionOutput, LocationValidationRequest, LocationValidationResponse, PredictionInput
 from city_loader import search_cities, city_exists
+from multi_city_utils import get_multiple_cities_predictions, get_sample_cities
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -332,3 +334,56 @@ def forecast_3day(place: str):
         "location": place,
         "forecast": results
     }
+
+
+@app.post("/simulate")
+def simulate(data: PredictionInput):
+    """Run model-driven flood simulation across hours and return timeline."""
+    try:
+        timeline = simulate_flood(data.model_dump())
+        return {"timeline": timeline}
+    except Exception as e:
+        logger.exception("Simulation failed: %s", e)
+        raise HTTPException(status_code=500, detail="Simulation failed on server")
+
+
+# --------------------------------------------------
+# Multi-City Endpoints
+# --------------------------------------------------
+@app.get("/multi-city/sample")
+def get_sample_cities_endpoint(limit: int = Query(10, ge=1, le=100)):
+    """
+    Get a sample of cities for the multi-city map view.
+    Returns city names with flood predictions.
+    """
+    try:
+        city_names = get_sample_cities(limit=limit)
+        predictions = get_multiple_cities_predictions(city_names)
+        return {"cities": predictions}
+    except Exception as e:
+        logger.exception("Failed to get sample cities: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to get sample cities")
+
+
+@app.post("/multi-city/predictions")
+def get_cities_predictions(data: dict):
+    """
+    Get flood predictions for a specific list of cities.
+    
+    Request body: {"cities": ["city1", "city2", ...]}
+    """
+    try:
+        city_names = data.get("cities", [])
+        if not city_names or not isinstance(city_names, list):
+            raise HTTPException(status_code=400, detail="cities parameter must be a non-empty list")
+        
+        # Limit to 50 cities per request
+        city_names = city_names[:50]
+        predictions = get_multiple_cities_predictions(city_names)
+        return {"cities": predictions}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to get cities predictions: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to get cities predictions")
+

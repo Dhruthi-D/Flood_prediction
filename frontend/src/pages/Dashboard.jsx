@@ -3,6 +3,8 @@ import { getLivePrediction, get3DayForecast, postPrediction, validateLocation } 
 import "./Dashboard.css";
 import ForecastChart from "../components/ForecastChart";
 import LocationSelector from "../components/LocationSelector";
+import Simulation from "./Simulation";
+import MultiCityScan from "./MultiCityScan";
 
 export default function Dashboard() {
   const [location, setLocation] = useState(null); // { type: "city"|"coordinates", value: string|{latitude, longitude} }
@@ -170,6 +172,8 @@ export default function Dashboard() {
         temp_anomaly: parseFloat(form.temp_anomaly) || 0.0,
       };
 
+      localStorage.setItem("latestSimulationInput", JSON.stringify(payload));
+
       const res = await postPrediction(payload);
       setCustomResult(res);
     } catch (err) {
@@ -219,6 +223,12 @@ export default function Dashboard() {
               onClick={() => setActiveTab("forecast")}
             >
               📈 3-Day Forecast
+            </button>
+            <button
+              className={`tab ${activeTab === "multi-city" ? "active" : ""}`}
+              onClick={() => setActiveTab("multi-city")}
+            >
+              🌍 Multi-City Scan
             </button>
             <button
               className={`tab ${activeTab === "simulation" ? "active" : ""}`}
@@ -350,13 +360,17 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Multi-City Scan Tab */}
+        {activeTab === "multi-city" && (
+          <div className="tab-content">
+            <MultiCityScan />
+          </div>
+        )}
+
         {/* Simulation Tab */}
         {activeTab === "simulation" && (
           <div className="tab-content">
-            <div className="coming-soon">
-              <h3>🌀 Flood Simulation Module</h3>
-              <p>Coming Soon - Advanced 3D flood simulation visualization</p>
-            </div>
+            <Simulation />
           </div>
         )}
 

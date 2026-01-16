@@ -65,3 +65,7 @@ class LocationValidationResponse(BaseModel):
     valid: bool
     message: str
     location_type: Optional[str] = None  # "city" or "coordinates"
+
+
+# Alias for backward compatibility with earlier naming
+PredictionInput = WeatherInput

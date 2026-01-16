@@ -394,3 +394,16 @@
     font-size: 1.5rem;
   }
 }
+
+/* Multi-city scan adjustments */
+.tab-content .multi-city-scan {
+  margin: -40px -40px -40px -40px;
+  padding: 40px;
+}
+
+@media (max-width: 768px) {
+  .tab-content .multi-city-scan {
+    margin: -40px -40px -40px -40px;
+    padding: 0;
+  }
+}
