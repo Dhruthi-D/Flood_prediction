@@ -12,6 +12,10 @@ export default function MultiCityScan() {
   const [selectedCity, setSelectedCity] = useState(null);
   const [showSimulation, setShowSimulation] = useState(false);
   const [cityLimit, setCityLimit] = useState(15);
+  const [customCities, setCustomCities] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   // Load sample cities on mount
   useEffect(() => {
@@ -57,6 +61,61 @@ export default function MultiCityScan() {
     setCityLimit(newLimit);
   };
 
+  const searchCities = async (query) => {
+    if (!query || query.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/cities?query=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error("Search failed");
+      const data = await response.json();
+      setSearchResults(data.cities || []);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    searchCities(query);
+  };
+
+  const handleAddCity = async (cityName) => {
+    if (customCities.includes(cityName)) return;
+
+    setCustomCities([...customCities, cityName]);
+    setSearchQuery("");
+    setSearchResults([]);
+
+    // Fetch prediction for this city
+    try {
+      const response = await fetch(`${API_BASE}/multi-city/predictions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cities: [cityName] })
+      });
+      if (!response.ok) throw new Error("Failed to fetch prediction");
+      const data = await response.json();
+      
+      // Add to cities list
+      setCities(prev => [...prev, ...data.cities]);
+    } catch (err) {
+      console.error("Error fetching city prediction:", err);
+    }
+  };
+
+  const handleRemoveCity = (cityName) => {
+    setCustomCities(customCities.filter(c => c !== cityName));
+    setCities(cities.filter(c => c.city !== cityName));
+  };
+
   const getRiskColor = (riskLevel) => {
     switch (riskLevel?.toLowerCase()) {
       case "low":
@@ -92,7 +151,7 @@ export default function MultiCityScan() {
       {/* Controls Section */}
       <div className="scan-controls">
         <div className="control-group">
-          <label htmlFor="city-limit">Number of Cities:</label>
+          <label htmlFor="city-limit">Default Cities:</label>
           <input
             id="city-limit"
             type="number"
@@ -106,6 +165,54 @@ export default function MultiCityScan() {
         <button className="btn btn-primary" onClick={handleRefresh} disabled={loading}>
           {loading ? "Loading..." : "🔄 Refresh Scan"}
         </button>
+      </div>
+
+      {/* City Search and Add */}
+      <div className="city-search-section">
+        <h3>➕ Add Custom Cities</h3>
+        <div className="search-container">
+          <input
+            type="text"
+            className="city-search-input"
+            placeholder="Search for a city to add..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+          {searchLoading && <span className="search-loading">Searching...</span>}
+          {searchResults.length > 0 && (
+            <div className="search-results">
+              {searchResults.map((city) => (
+                <div
+                  key={city}
+                  className="search-result-item"
+                  onClick={() => handleAddCity(city)}
+                >
+                  {city}
+                  {customCities.includes(city) && <span className="added-badge">✓ Added</span>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {customCities.length > 0 && (
+          <div className="custom-cities-list">
+            <h4>Custom Cities ({customCities.length}):</h4>
+            <div className="custom-cities-tags">
+              {customCities.map((city) => (
+                <div key={city} className="city-tag">
+                  {city}
+                  <button
+                    className="remove-city-btn"
+                    onClick={() => handleRemoveCity(city)}
+                    title="Remove city"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {error && <div className="error-message">{error}</div>}
