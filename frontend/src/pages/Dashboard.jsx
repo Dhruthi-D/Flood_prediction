@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { getLivePrediction, get3DayForecast, postPrediction, validateLocation } from "../services/api";
+import { getLivePrediction, get3DayForecast, postPrediction, validateLocation, explainPrediction } from "../services/api";
 import "./Dashboard.css";
 import ForecastChart from "../components/ForecastChart";
 import LocationSelector from "../components/LocationSelector";
 import Simulation from "./Simulation";
 import MultiCityScan from "./MultiCityScan";
+import Explainability from "./Explainability";
 
 export default function Dashboard() {
   const [location, setLocation] = useState(null); // { type: "city"|"coordinates", value: string|{latitude, longitude} }
@@ -14,6 +15,9 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [customResult, setCustomResult] = useState(null);
+  const [liveShapExplanation, setLiveShapExplanation] = useState(null);
+  const [customShapExplanation, setCustomShapExplanation] = useState(null);
+  const [shapLoading, setShapLoading] = useState(false);
 
   // form state for custom prediction
   const [form, setForm] = useState({
@@ -197,6 +201,92 @@ export default function Dashboard() {
     }
   };
 
+  const explainLivePrediction = async () => {
+    if (!live || !live.weather) {
+      setError("No live prediction data to explain");
+      return;
+    }
+
+    setShapLoading(true);
+    setLiveShapExplanation(null);
+    setError(null);
+    
+    try {
+      // Use actual values from live weather data (model already calculated these)
+      const payload = {
+        temperature: live.weather.temperature,
+        temperature_max: live.weather.temperature_max,
+        temperature_min: live.weather.temperature_min,
+        pressure: live.weather.pressure,
+        rainfall: live.weather.rainfall,
+        humidity: live.weather.humidity,
+        wind_speed: live.weather.wind_speed,
+        rain_anomaly: 0.0,
+        temp_anomaly: 0.0,
+      };
+
+      const result = await explainPrediction(payload);
+      setLiveShapExplanation(result);
+    } catch (err) {
+      setError(err.message || "Failed to generate explanation");
+    } finally {
+      setShapLoading(false);
+    }
+  };
+
+  const explainCustomPrediction = async () => {
+    if (!customResult) {
+      setError("No custom prediction to explain");
+      return;
+    }
+
+    setShapLoading(true);
+    setCustomShapExplanation(null);
+    setError(null);
+    
+    try {
+      const payload = {
+        temperature: parseFloat(form.temperature),
+        temperature_max: parseFloat(form.temperature_max),
+        temperature_min: parseFloat(form.temperature_min),
+        pressure: parseFloat(form.pressure),
+        rainfall: parseFloat(form.rainfall),
+        humidity: parseFloat(form.humidity),
+        wind_speed: parseFloat(form.wind_speed),
+        rain_anomaly: parseFloat(form.rain_anomaly) || 0.0,
+        temp_anomaly: parseFloat(form.temp_anomaly) || 0.0,
+      };
+
+      const result = await explainPrediction(payload);
+      setCustomShapExplanation(result);
+    } catch (err) {
+      setError(err.message || "Failed to generate explanation");
+    } finally {
+      setShapLoading(false);
+    }
+  };
+
+  const getShapSummary = (explanation) => {
+    if (!explanation) return null;
+
+    const features = explanation.feature_names || [];
+    const shap_values = explanation.shap_values || [];
+    
+    const contributions = features.map((name, idx) => ({
+      feature: name,
+      shap_value: shap_values[idx] || 0,
+      abs_shap: Math.abs(shap_values[idx] || 0),
+    }));
+
+    contributions.sort((a, b) => b.abs_shap - a.abs_shap);
+    const topContributors = contributions.slice(0, 3);
+
+    return {
+      all: contributions,
+      top: topContributors,
+    };
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard-container">
@@ -241,6 +331,12 @@ export default function Dashboard() {
                 onClick={() => setActiveTab("custom")}
               >
                 ✏️ Custom
+              </button>
+              <button
+                className={`tab ${activeTab === "explainability" ? "active" : ""}`}
+                onClick={() => setActiveTab("explainability")}
+              >
+                🔍 Explainability
               </button>
           </div>
         </div>
@@ -308,6 +404,77 @@ export default function Dashboard() {
                     <h4>💡 Recommendation</h4>
                     <p>{live.recommendation}</p>
                   </div>
+
+                  <button 
+                    className="action-button" 
+                    onClick={explainLivePrediction}
+                    disabled={shapLoading}
+                    style={{ marginTop: "16px", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+                  >
+                    {shapLoading ? "Generating Explanation..." : "🔍 Explain This Prediction"}
+                  </button>
+
+                  {liveShapExplanation && (
+                    <div style={{ marginTop: "24px", padding: "20px", background: "#f8f9ff", borderRadius: "12px", border: "2px solid #667eea" }}>
+                      <h3 style={{ color: "#1e3a8a", marginBottom: "16px" }}>SHAP Feature Impact Analysis</h3>
+                      <div style={{ 
+                        background: "linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)", 
+                        padding: "16px", 
+                        borderRadius: "8px",
+                        marginBottom: "20px",
+                        border: "1px solid #bfdbfe"
+                      }}>
+                        <div style={{ marginBottom: "8px" }}>
+                          <strong style={{ fontSize: "16px", color: "#1e40af" }}>Prediction:</strong> 
+                          <span style={{ fontSize: "20px", fontWeight: "bold", color: liveShapExplanation.prediction > 0.5 ? "#dc2626" : "#16a34a", marginLeft: "8px" }}>
+                            {(liveShapExplanation.prediction * 100).toFixed(2)}% flood risk
+                          </span>
+                        </div>
+                        <div style={{ fontSize: "13px", color: "#666", fontStyle: "italic" }}>
+                          Base model probability: {(liveShapExplanation.base_value * 100).toFixed(2)}%
+                        </div>
+                      </div>
+                      
+                      <h4 style={{ marginBottom: "14px", color: "#1e3a8a" }}>All Feature Contributions</h4>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {getShapSummary(liveShapExplanation).all.map((contrib, idx) => {
+                          const isPositive = contrib.shap_value >= 0;
+                          const barWidth = (contrib.abs_shap / Math.max(...getShapSummary(liveShapExplanation).all.map(c => c.abs_shap))) * 100;
+                          return (
+                            <div key={idx} style={{ 
+                              display: "flex", 
+                              alignItems: "center",
+                              gap: "12px",
+                              padding: "10px",
+                              background: "#fff",
+                              borderRadius: "6px",
+                              border: "1px solid #e5e7eb"
+                            }}>
+                              <div style={{ minWidth: "100px", fontWeight: "600", fontSize: "14px", color: "#1f2937" }}>
+                                {contrib.feature}
+                              </div>
+                              <div style={{ flex: 1, height: "24px", background: "#e5e7eb", borderRadius: "4px", position: "relative", overflow: "hidden" }}>
+                                <div style={{ 
+                                  height: "100%",
+                                  width: `${barWidth}%`,
+                                  background: isPositive ? "linear-gradient(90deg, #3b82f6, #1d4ed8)" : "linear-gradient(90deg, #ef4444, #b91c1c)",
+                                  transition: "width 0.3s ease"
+                                }} />
+                              </div>
+                              <div style={{ minWidth: "120px", textAlign: "right", fontSize: "13px", fontWeight: "700" }}>
+                                <span style={{ color: isPositive ? "#3b82f6" : "#ef4444" }}>
+                                  {contrib.shap_value.toFixed(4)}
+                                </span>
+                                <span style={{ color: "#666", marginLeft: "8px", fontWeight: "500" }}>
+                                  {isPositive ? "↑ increases" : "↓ decreases"}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -374,6 +541,13 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Explainability Tab */}
+        {activeTab === "explainability" && (
+          <div className="tab-content">
+            <Explainability />
+          </div>
+        )}
+
         {/* Custom Tab */}
         {activeTab === "custom" && (
           <div className="tab-content">
@@ -430,6 +604,77 @@ export default function Dashboard() {
                     <span className="risk-value">{(Number(customResult.probability) * 100).toFixed(2)}%<span className="raw-value">{Number(customResult.probability)}</span></span>
                   </div>
                 </div>
+
+                <button 
+                  className="action-button" 
+                  onClick={explainCustomPrediction}
+                  disabled={shapLoading}
+                  style={{ marginTop: "16px", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
+                >
+                  {shapLoading ? "Generating Explanation..." : "🔍 Explain This Prediction"}
+                </button>
+
+                {customShapExplanation && (
+                  <div style={{ marginTop: "24px", padding: "20px", background: "#f8f9ff", borderRadius: "12px", border: "2px solid #667eea" }}>
+                    <h3 style={{ color: "#1e3a8a", marginBottom: "16px" }}>SHAP Feature Impact Analysis</h3>
+                    <div style={{ 
+                      background: "linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)", 
+                      padding: "16px", 
+                      borderRadius: "8px",
+                      marginBottom: "20px",
+                      border: "1px solid #bfdbfe"
+                    }}>
+                      <div style={{ marginBottom: "8px" }}>
+                        <strong style={{ fontSize: "16px", color: "#1e40af" }}>Prediction:</strong> 
+                        <span style={{ fontSize: "20px", fontWeight: "bold", color: customShapExplanation.prediction > 0.5 ? "#dc2626" : "#16a34a", marginLeft: "8px" }}>
+                          {(customShapExplanation.prediction * 100).toFixed(2)}% flood risk
+                        </span>
+                      </div>
+                      <div style={{ fontSize: "13px", color: "#666", fontStyle: "italic" }}>
+                        Base model probability: {(customShapExplanation.base_value * 100).toFixed(2)}%
+                      </div>
+                    </div>
+                    
+                    <h4 style={{ marginBottom: "14px", color: "#1e3a8a" }}>All Feature Contributions</h4>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                      {getShapSummary(customShapExplanation).all.map((contrib, idx) => {
+                        const isPositive = contrib.shap_value >= 0;
+                        const barWidth = (contrib.abs_shap / Math.max(...getShapSummary(customShapExplanation).all.map(c => c.abs_shap))) * 100;
+                        return (
+                          <div key={idx} style={{ 
+                            display: "flex", 
+                            alignItems: "center",
+                            gap: "12px",
+                            padding: "10px",
+                            background: "#fff",
+                            borderRadius: "6px",
+                            border: "1px solid #e5e7eb"
+                          }}>
+                            <div style={{ minWidth: "100px", fontWeight: "600", fontSize: "14px", color: "#1f2937" }}>
+                              {contrib.feature}
+                            </div>
+                            <div style={{ flex: 1, height: "24px", background: "#e5e7eb", borderRadius: "4px", position: "relative", overflow: "hidden" }}>
+                              <div style={{ 
+                                height: "100%",
+                                width: `${barWidth}%`,
+                                background: isPositive ? "linear-gradient(90deg, #3b82f6, #1d4ed8)" : "linear-gradient(90deg, #ef4444, #b91c1c)",
+                                transition: "width 0.3s ease"
+                              }} />
+                            </div>
+                            <div style={{ minWidth: "120px", textAlign: "right", fontSize: "13px", fontWeight: "700" }}>
+                              <span style={{ color: isPositive ? "#3b82f6" : "#ef4444" }}>
+                                {contrib.shap_value.toFixed(4)}
+                              </span>
+                              <span style={{ color: "#666", marginLeft: "8px", fontWeight: "500" }}>
+                                {isPositive ? "↑ increases" : "↓ decreases"}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

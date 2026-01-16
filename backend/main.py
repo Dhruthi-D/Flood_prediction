@@ -4,7 +4,7 @@ import numpy as np
 import requests
 import re
 import logging
-from model_loader import predict, get_feature_importances, get_feature_names, explain_instance
+from model_loader import predict, get_feature_importances, get_feature_names, explain_instance, explain_instance_shap
 from simulation_engine import simulate_flood
 from schemas import WeatherInput, PredictionOutput, LocationValidationRequest, LocationValidationResponse, PredictionInput
 from city_loader import search_cities, city_exists
@@ -12,7 +12,6 @@ from multi_city_utils import get_multiple_cities_predictions, get_sample_cities
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 # --------------------------------------------------
 # FastAPI App
 # --------------------------------------------------
@@ -23,7 +22,7 @@ app = FastAPI(title="ML Flood Prediction System")
 # --------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174", "http://localhost:5175", "http://127.0.0.1:5175"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -88,6 +87,44 @@ def predict_flood(data: WeatherInput):
         logger.exception("Error during prediction: %s", e)
         # Return HTTP error so frontend can show meaningful message
         raise HTTPException(status_code=500, detail="Prediction failed on server")
+
+
+# --------------------------------------------------
+# SHAP Explainability Endpoint
+# --------------------------------------------------
+@app.post("/explain")
+def explain_prediction(data: WeatherInput):
+    """
+    Explain a single prediction using SHAP TreeExplainer.
+    Returns base value, feature names, and SHAP values for the prediction.
+    """
+    logger.info("Received /explain request: %s", data.dict())
+
+    try:
+        # --------------------------------------------------
+        # Feature Vector (ORDER MUST MATCH TRAINING)
+        # --------------------------------------------------
+        features = np.array([[
+            data.temperature,        # T2M
+            data.temperature_max,    # T2M_MAX
+            data.temperature_min,    # T2M_MIN
+            data.pressure,           # PS
+            data.rainfall,           # PRECTOTCORR
+            data.humidity,           # RH2M
+            data.wind_speed,         # WS2M
+            data.rain_anomaly,       # rain_anomaly
+            data.temp_anomaly        # temp_anomaly
+        ]])
+
+        # --------------------------------------------------
+        # SHAP Explanation
+        # --------------------------------------------------
+        explanation = explain_instance_shap(features)
+        return explanation
+
+    except Exception as e:
+        logger.exception("Error during SHAP explanation: %s", e)
+        raise HTTPException(status_code=500, detail="Explainability failed on server")
 
 
 # --------------------------------------------------
@@ -262,10 +299,15 @@ def live_prediction(place: str):
     lat, lon = coords
     weather = fetch_live_weather(lat, lon)
 
+    # Calculate features used in model
+    t2m = weather["temperature"]
+    t2m_max = weather["temperature"] + 2
+    t2m_min = weather["temperature"] - 2
+    
     features = np.array([[
-        weather["temperature"],              # T2M
-        weather["temperature"] + 2,           # T2M_MAX
-        weather["temperature"] - 2,           # T2M_MIN
+        t2m,                                  # T2M
+        t2m_max,                              # T2M_MAX
+        t2m_min,                              # T2M_MIN
         weather["pressure"],                  # PS
         weather["rainfall"],                  # PRECTOTCORR
         weather["humidity"],                  # RH2M
@@ -291,6 +333,8 @@ def live_prediction(place: str):
     "recommendation": recommendations[risk],
     "weather": {
         "temperature": weather["temperature"],
+        "temperature_max": t2m_max,
+        "temperature_min": t2m_min,
         "rainfall": weather["rainfall"],
         "humidity": weather["humidity"],
         "pressure": weather["pressure"],
