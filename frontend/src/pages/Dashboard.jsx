@@ -300,8 +300,17 @@ export default function Dashboard() {
   return (
     <div className="dashboard">
       <div className="dashboard-container">
+        {/* Welcome Section */}
+        <div className="welcome-section">
+          <div className="welcome-content">
+            <h2>Welcome to Flood Risk Analysis</h2>
+            <p>Select a location to get started with real-time flood predictions and analysis</p>
+          </div>
+        </div>
+
         {/* Location Selector Section */}
         <div className="search-section">
+          <h3>📍 Choose Your Location</h3>
           <LocationSelector
             onLocationSelect={setLocation}
             selectedLocation={location}

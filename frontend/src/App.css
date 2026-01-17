@@ -34,29 +34,82 @@ body {
 }
 
 .app-header {
-  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 100%);
+  background: linear-gradient(135deg, rgba(6, 28, 50, 0.95) 0%, rgba(11, 43, 138, 0.85) 50%, rgba(6, 28, 50, 0.95) 100%);
   color: white;
-  padding: 40px 20px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+  padding: 50px 20px 35px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid rgba(96, 184, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(96, 184, 255, 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.header-top {
+  margin-bottom: 20px;
 }
 
 .app-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #60b8ff 0%, #e6f4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .app-subtitle {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   opacity: 0.95;
-  font-weight: 300;
+  font-weight: 400;
+  color: #b0d4e3;
+  letter-spacing: 0.3px;
+}
+
+.header-tagline {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.tagline-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: rgba(96, 184, 255, 0.15);
+  border: 1px solid rgba(96, 184, 255, 0.4);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #60b8ff;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.tagline-badge:hover {
+  background: rgba(96, 184, 255, 0.25);
+  border-color: rgba(96, 184, 255, 0.6);
+  transform: translateY(-2px);
 }
 
 .app-main {
