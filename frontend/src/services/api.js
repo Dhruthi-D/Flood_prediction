@@ -151,3 +151,20 @@ export async function getMultiCityPredictions(cities) {
 
   return body;
 }
+
+export async function getAreaHeatmap(lat, lon, radius = 50) {
+  const res = await fetch(
+    `http://127.0.0.1:8000/area/heatmap?center_lat=${lat}&center_lon=${lon}&radius_km=${radius}`
+  );
+  return await res.json();
+}
+
+export async function getBoxHeatmap(box) {
+  const { min_lat, min_lon, max_lat, max_lon } = box;
+
+  const res = await fetch(
+    `http://127.0.0.1:8000/area/heatmap/box?min_lat=${min_lat}&min_lon=${min_lon}&max_lat=${max_lat}&max_lon=${max_lon}`
+  );
+
+  return await res.json();
+}

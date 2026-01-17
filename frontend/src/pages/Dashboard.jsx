@@ -6,6 +6,7 @@ import LocationSelector from "../components/LocationSelector";
 import Simulation from "./Simulation";
 import MultiCityScan from "./MultiCityScan";
 import Explainability from "./Explainability";
+import AreaHeatmap from "./AreaHeatmap";
 
 export default function Dashboard() {
   const [location, setLocation] = useState(null); // { type: "city"|"coordinates", value: string|{latitude, longitude} }
@@ -325,6 +326,18 @@ export default function Dashboard() {
               onClick={() => setActiveTab("simulation")}
             >
               🌀 Simulation
+
+              
+          </button>
+              <button
+              className={`tab ${activeTab === "area-heatmap" ? "active" : ""}`}
+              onClick={() => setActiveTab("area-heatmap")}
+            >
+              🗺️ Area Heatmap
+           
+
+
+              
             </button>
               <button
                 className={`tab ${activeTab === "custom" ? "active" : ""}`}
@@ -533,6 +546,13 @@ export default function Dashboard() {
             <MultiCityScan />
           </div>
         )}
+
+        {/* Area Heatmap Tab */}
+{activeTab === "area-heatmap" && (
+  <div className="tab-content">
+    <AreaHeatmap />
+  </div>
+)}
 
         {/* Simulation Tab */}
         {activeTab === "simulation" && (
