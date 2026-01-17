@@ -5,6 +5,7 @@ import requests
 import re
 import logging
 from datetime import datetime
+from typing import List, Dict
 from model_loader import predict, get_feature_importances, get_feature_names, explain_instance, explain_instance_shap
 from simulation_engine import simulate_flood
 from schemas import WeatherInput, PredictionOutput, LocationValidationRequest, LocationValidationResponse, PredictionInput, ChatRequest, ChatResponse
@@ -522,3 +523,195 @@ def clear_chat_history():
         logger.exception("Error clearing chat history: %s", e)
         raise HTTPException(status_code=500, detail="Failed to clear chat history")
 
+
+# --------------------------------------------------
+# Heatmap Endpoints - Area Flood Risk
+# --------------------------------------------------
+def generate_grid_points(min_lat, min_lon, max_lat, max_lon, grid_size=64):
+    lat_step = (max_lat - min_lat) / grid_size
+    lon_step = (max_lon - min_lon) / grid_size
+
+    points = []
+    for i in range(grid_size):
+        for j in range(grid_size):
+            lat = min_lat + (i + 0.5) * lat_step
+            lon = min_lon + (j + 0.5) * lon_step
+            points.append((lat, lon))
+
+    return points
+
+
+@app.get("/area/heatmap")
+def area_heatmap(
+    center_lat: float,
+    center_lon: float,
+    radius_km: int = Query(50, ge=10, le=200),
+    points: int = Query(25, ge=9, le=100)
+):
+    """
+    Generate flood risk heatmap data for a selected area.
+    Returns multiple lat/lon points with risk probabilities.
+    """
+
+    try:
+        results = []
+
+        # Generate grid around center
+        grid_size = int(np.sqrt(points))
+        lat_step = radius_km / 111 / grid_size
+        lon_step = radius_km / (111 * np.cos(np.radians(center_lat))) / grid_size
+
+        for i in range(-grid_size, grid_size + 1):
+            for j in range(-grid_size, grid_size + 1):
+                lat = center_lat + i * lat_step
+                lon = center_lon + j * lon_step
+
+                weather = fetch_live_weather(lat, lon)
+
+                features = np.array([[ 
+                    weather["temperature"],
+                    weather["temperature"] + 2,
+                    weather["temperature"] - 2,
+                    weather["pressure"],
+                    weather["rainfall"],
+                    weather["humidity"],
+                    weather["wind_speed"],
+                    0.0,
+                    0.0
+                ]])
+
+                prob = float(predict(features))
+
+                results.append({
+                    "lat": lat,
+                    "lon": lon,
+                    "intensity": prob
+                })
+
+        return {
+            "center": {"lat": center_lat, "lon": center_lon},
+            "radius_km": radius_km,
+            "heatmap": results
+        }
+
+    except Exception as e:
+        logger.exception("Heatmap generation failed: %s", e)
+        raise HTTPException(status_code=500, detail="Heatmap generation failed")
+
+
+def interpolate_bilinear(lat: float, lon: float, corner_data: List, 
+                         min_lat: float, max_lat: float, 
+                         min_lon: float, max_lon: float) -> float:
+    """
+    Bilinear interpolation between 4 corners for smooth gradients
+    """
+    # Normalize coordinates to 0-1 range
+    x = (lon - min_lon) / (max_lon - min_lon) if max_lon != min_lon else 0.5
+    y = (lat - min_lat) / (max_lat - min_lat) if max_lat != min_lat else 0.5
+    
+    # Extract corner values
+    # corner_data format: [(lat, lon, probability), ...]
+    # Order: bottom-left, bottom-right, top-left, top-right
+    v00 = corner_data[0][2]  # bottom-left
+    v01 = corner_data[1][2]  # bottom-right
+    v10 = corner_data[2][2]  # top-left
+    v11 = corner_data[3][2]  # top-right
+    
+    # Bilinear interpolation formula
+    value = (v00 * (1 - x) * (1 - y) +
+             v01 * x * (1 - y) +
+             v10 * (1 - x) * y +
+             v11 * x * y)
+    
+    return value
+
+
+def add_realistic_variation(value: float, noise_level: float = 0.05) -> float:
+    """
+    Add small random variation to make heatmap look more realistic
+    """
+    noise = np.random.normal(0, noise_level)
+    return np.clip(value + noise, 0.0, 1.0)
+
+
+@app.get("/area/heatmap/box")
+def area_heatmap_box(
+    min_lat: float,
+    min_lon: float,
+    max_lat: float,
+    max_lon: float,
+    grid_size: int = 30
+):
+    """
+    Generate flood risk heatmap for a bounding box area using interpolation for speed.
+    """
+    try:
+        # STEP 1: Sample only 5 strategic points (FAST!)
+        sample_points = [
+            (min_lat, min_lon),                             # Bottom-left corner
+            (min_lat, max_lon),                             # Bottom-right corner
+            (max_lat, min_lon),                             # Top-left corner
+            (max_lat, max_lon),                             # Top-right corner
+            ((min_lat + max_lat)/2, (min_lon + max_lon)/2) # Center point
+        ]
+        
+        sampled_data = []
+        for lat, lon in sample_points:
+            # Fetch weather data
+            weather = fetch_live_weather(lat, lon)
+            
+            # Build model features
+            features = np.array([[
+                weather["temperature"],
+                weather["temperature"] + 2,
+                weather["temperature"] - 2,
+                weather["pressure"],
+                weather["rainfall"],
+                weather["humidity"],
+                weather["wind_speed"],
+                0.0,
+                0.0
+            ]])
+            
+            # Get flood probability prediction
+            probability = predict(features)
+            sampled_data.append((lat, lon, float(probability)))
+        
+        # STEP 2: Use corner points for interpolation
+        corner_data = sampled_data[:4]
+        
+        # STEP 3: Create dense grid with interpolation
+        lat_step = (max_lat - min_lat) / grid_size
+        lon_step = (max_lon - min_lon) / grid_size
+        
+        heatmap_points = []
+        
+        for i in range(grid_size):
+            for j in range(grid_size):
+                lat = min_lat + (i + 0.5) * lat_step
+                lon = min_lon + (j + 0.5) * lon_step
+                
+                # Interpolate value from 4 corners
+                interpolated_value = interpolate_bilinear(
+                    lat, lon, corner_data, 
+                    min_lat, max_lat, min_lon, max_lon
+                )
+                
+                # Add slight realistic variation
+                final_value = add_realistic_variation(interpolated_value, noise_level=0.03)
+                
+                heatmap_points.append({
+                    "lat": round(lat, 6),
+                    "lon": round(lon, 6),
+                    "intensity": round(final_value, 4)
+                })
+        
+        return {
+            "success": True,
+            "grid_size": f"{grid_size}x{grid_size}",
+            "points": heatmap_points
+        }
+    
+    except Exception as e:
+        logger.exception("Heatmap interpolation failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Heatmap generation failed: {str(e)}")
