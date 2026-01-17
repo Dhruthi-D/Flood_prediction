@@ -6,6 +6,7 @@ import LocationSelector from "../components/LocationSelector";
 import Simulation from "./Simulation";
 import MultiCityScan from "./MultiCityScan";
 import Explainability from "./Explainability";
+import ChatAssistant from "./ChatAssistant";
 
 export default function Dashboard() {
   const [location, setLocation] = useState(null); // { type: "city"|"coordinates", value: string|{latitude, longitude} }
@@ -84,6 +85,10 @@ export default function Dashboard() {
     try {
       const data = await getLivePrediction(place);
       setLive(data);
+      // Extract SHAP explanation from response if available
+      if (data.shap_explanation) {
+        setLiveShapExplanation(data.shap_explanation);
+      }
     } catch (err) {
       setError("Failed to fetch prediction. Please try again.");
     } finally {
@@ -180,6 +185,10 @@ export default function Dashboard() {
 
       const res = await postPrediction(payload);
       setCustomResult(res);
+      // Extract SHAP explanation from response if available
+      if (res.shap_explanation) {
+        setCustomShapExplanation(res.shap_explanation);
+      }
     } catch (err) {
       // show server-provided message when possible
       setError(err.message || "Failed to run custom prediction.");
@@ -337,6 +346,12 @@ export default function Dashboard() {
                 onClick={() => setActiveTab("explainability")}
               >
                 🔍 Explainability
+              </button>
+              <button
+                className={`tab ${activeTab === "chat" ? "active" : ""}`}
+                onClick={() => setActiveTab("chat")}
+              >
+                💬 Chat Assistant
               </button>
           </div>
         </div>
@@ -677,6 +692,18 @@ export default function Dashboard() {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Chat Assistant Tab */}
+        {activeTab === "chat" && (
+          <div className="tab-content" style={{ height: "calc(100vh - 250px)" }}>
+            <ChatAssistant 
+              prediction={live}
+              shapExplanation={liveShapExplanation}
+              simulation={null}
+              location={location ? getPlaceString() : null}
+            />
           </div>
         )}
       </div>

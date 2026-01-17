@@ -1,0 +1,47 @@
+// Chatbot endpoints
+export async function sendChatMessage(message, context = {}) {
+  const res = await fetch(`http://127.0.0.1:8000/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message,
+      ...context
+    }),
+  });
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch (e) {
+    // non-json response
+  }
+
+  if (!res.ok) {
+    const msg = (body && (body.detail || body.error)) || `Chat request failed (${res.status})`;
+    throw new Error(msg);
+  }
+
+  return body;
+}
+
+export async function getChatHistory() {
+  const res = await fetch(`http://127.0.0.1:8000/chat/history`);
+  
+  if (!res.ok) {
+    throw new Error(`Failed to get chat history: ${res.status}`);
+  }
+  
+  return await res.json();
+}
+
+export async function clearChatHistory() {
+  const res = await fetch(`http://127.0.0.1:8000/chat/clear`, {
+    method: "POST",
+  });
+  
+  if (!res.ok) {
+    throw new Error(`Failed to clear chat history: ${res.status}`);
+  }
+  
+  return await res.json();
+}

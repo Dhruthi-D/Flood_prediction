@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator, model_validator
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any, List
 
 class WeatherInput(BaseModel):
     # Core weather inputs
@@ -18,6 +18,7 @@ class WeatherInput(BaseModel):
 class PredictionOutput(BaseModel):
     probability: float
     risk_level: str
+    shap_explanation: Optional[Dict[str, Any]] = None
 
 
 class LocationValidationRequest(BaseModel):
@@ -69,3 +70,32 @@ class LocationValidationResponse(BaseModel):
 
 # Alias for backward compatibility with earlier naming
 PredictionInput = WeatherInput
+
+
+# Chatbot schemas
+class ChatMessage(BaseModel):
+    """A single chat message"""
+    role: str  # "user" or "assistant"
+    message: str
+    timestamp: Optional[str] = None
+
+
+class ChatRequest(BaseModel):
+    """Request model for chatbot queries"""
+    message: str
+    context: Optional[Dict[str, Any]] = None
+    
+    # Optional context components
+    prediction: Optional[Dict[str, Any]] = None
+    shap_explanation: Optional[Dict[str, Any]] = None
+    simulation: Optional[Dict[str, Any]] = None
+    location: Optional[str] = None
+
+
+class ChatResponse(BaseModel):
+    """Response model for chatbot queries"""
+    message: str
+    type: str  # Type of response (e.g., "shap_explanation", "prediction_explanation")
+    confidence: float
+    data: Optional[Dict[str, Any]] = None
+    timestamp: str

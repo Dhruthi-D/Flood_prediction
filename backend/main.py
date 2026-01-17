@@ -4,11 +4,13 @@ import numpy as np
 import requests
 import re
 import logging
+from datetime import datetime
 from model_loader import predict, get_feature_importances, get_feature_names, explain_instance, explain_instance_shap
 from simulation_engine import simulate_flood
-from schemas import WeatherInput, PredictionOutput, LocationValidationRequest, LocationValidationResponse, PredictionInput
+from schemas import WeatherInput, PredictionOutput, LocationValidationRequest, LocationValidationResponse, PredictionInput, ChatRequest, ChatResponse
 from city_loader import search_cities, city_exists
 from multi_city_utils import get_multiple_cities_predictions, get_sample_cities
+from chatbot_engine import get_chatbot
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -78,9 +80,18 @@ def predict_flood(data: WeatherInput):
         probability = predict(features)
         risk_level = classify_risk(probability)
 
+        # --------------------------------------------------
+        # SHAP Explanation (for chatbot context)
+        # --------------------------------------------------
+        try:
+            shap_explanation = explain_instance_shap(features)
+        except:
+            shap_explanation = None
+
         return {
             "probability": float(probability),
-            "risk_level": risk_level
+            "risk_level": risk_level,
+            "shap_explanation": shap_explanation
         }
     except Exception as e:
         # Log exception with stack trace
@@ -319,6 +330,12 @@ def live_prediction(place: str):
     prob = predict(features)
     risk = classify_risk(prob)
 
+    # Get SHAP explanation
+    try:
+        shap_explanation = explain_instance_shap(features)
+    except:
+        shap_explanation = None
+
     recommendations = {
         "Low": "No immediate action required",
         "Moderate": "Monitor conditions",
@@ -331,6 +348,7 @@ def live_prediction(place: str):
     "probability": round(float(prob), 3),
     "risk_level": risk,
     "recommendation": recommendations[risk],
+    "shap_explanation": shap_explanation,
     "weather": {
         "temperature": weather["temperature"],
         "temperature_max": t2m_max,
@@ -430,4 +448,77 @@ def get_cities_predictions(data: dict):
     except Exception as e:
         logger.exception("Failed to get cities predictions: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get cities predictions")
+
+
+# --------------------------------------------------
+# Chatbot Endpoint - Explainability Assistant
+# --------------------------------------------------
+@app.post("/chat", response_model=ChatResponse)
+def chat_with_assistant(request: ChatRequest):
+    """
+    Explainability-focused chatbot endpoint.
+    
+    This endpoint provides interpretations and explanations of model outputs.
+    It does NOT provide decision-making or authoritative guidance.
+    
+    Context can include:
+    - prediction: Current prediction result
+    - shap_explanation: SHAP values for feature contributions
+    - simulation: Simulation (what-if) result
+    - location: Location name for contextualization
+    """
+    try:
+        logger.info("Received chat request: %s", request.message)
+        
+        # Get chatbot instance
+        chatbot = get_chatbot()
+        
+        # Build context dictionary
+        context = request.context or {}
+        
+        # Merge optional context fields
+        if request.prediction:
+            context["prediction"] = request.prediction
+        if request.shap_explanation:
+            context["shap_explanation"] = request.shap_explanation
+        if request.simulation:
+            context["simulation"] = request.simulation
+        if request.location:
+            context["location"] = request.location
+        
+        # Process query
+        response = chatbot.process_query(request.message, context)
+        
+        # Add timestamp
+        response["timestamp"] = datetime.now().isoformat()
+        
+        return ChatResponse(**response)
+    
+    except Exception as e:
+        logger.exception("Error in chat endpoint: %s", e)
+        raise HTTPException(status_code=500, detail="Chat processing failed on server")
+
+
+@app.get("/chat/history")
+def get_chat_history():
+    """Get conversation history from the chatbot"""
+    try:
+        chatbot = get_chatbot()
+        history = chatbot.get_conversation_history()
+        return {"history": history}
+    except Exception as e:
+        logger.exception("Error retrieving chat history: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to retrieve chat history")
+
+
+@app.post("/chat/clear")
+def clear_chat_history():
+    """Clear conversation history"""
+    try:
+        chatbot = get_chatbot()
+        chatbot.clear_history()
+        return {"message": "Chat history cleared successfully"}
+    except Exception as e:
+        logger.exception("Error clearing chat history: %s", e)
+        raise HTTPException(status_code=500, detail="Failed to clear chat history")
 
