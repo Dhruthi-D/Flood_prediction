@@ -60,7 +60,7 @@ STEP 3: RUN THE FRONTEND (REACT)
 2. Navigate to the frontend directory:
 cd frontend
 
-3. Install frontend dependencies:
+3. Install frontend dependencies :
 npm install
 
 4. Start the React development server:
