@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./MultiCityScan.css";
 import FloodMap from "../components/FloodMap";
 import Simulation from "./Simulation";
@@ -11,30 +11,98 @@ export default function MultiCityScan() {
   const [error, setError] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [showSimulation, setShowSimulation] = useState(false);
-  const [cityLimit, setCityLimit] = useState(15);
-  const [customCities, setCustomCities] = useState([]);
+  const [customCities, setCustomCities] = useState([]); // Array of {city: string, latitude?: number, longitude?: number}
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [coordinateError, setCoordinateError] = useState("");
 
-  // Load sample cities on mount
-  useEffect(() => {
-    loadSampleCities();
-  }, []);
+  const validateCoordinates = (lat, lon) => {
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    
+    if (isNaN(latNum) || isNaN(lonNum)) {
+      return { valid: false, error: "Please enter valid numbers for both coordinates" };
+    }
+    
+    if (latNum < -90 || latNum > 90) {
+      return { valid: false, error: "Latitude must be between -90 and 90" };
+    }
+    
+    if (lonNum < -180 || lonNum > 180) {
+      return { valid: false, error: "Longitude must be between -180 and 180" };
+    }
+    
+    return { valid: true, lat: latNum, lon: lonNum };
+  };
 
-  const loadSampleCities = async () => {
+  const handleAddByCoordinates = async () => {
+    if (!latitude.trim() || !longitude.trim()) {
+      setCoordinateError("Please enter both latitude and longitude");
+      return;
+    }
+
+    const validation = validateCoordinates(latitude, longitude);
+    if (!validation.valid) {
+      setCoordinateError(validation.error);
+      return;
+    }
+
+    const lat = validation.lat;
+    const lon = validation.lon;
+    
+    // Check if coordinates already exist
+    const coordString = `${lat},${lon}`;
+    const locationName = `Location (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+    
+    if (customCities.some(c => 
+      c.latitude === lat && c.longitude === lon
+    )) {
+      setCoordinateError("This location is already added");
+      return;
+    }
+
+    setCoordinateError("");
     setLoading(true);
-    setError(null);
+
+    const cityData = {
+      city: locationName,
+      latitude: lat,
+      longitude: lon
+    };
+
+    setCustomCities([...customCities, cityData]);
+
+    // Fetch prediction using coordinates format "lat,lon"
     try {
-      const response = await fetch(`${API_BASE}/multi-city/sample?limit=${cityLimit}`);
-      if (!response.ok) {
-        throw new Error(`Failed to load cities: ${response.statusText}`);
-      }
+      const response = await fetch(`${API_BASE}/multi-city/predictions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cities: [coordString] })
+      });
+      
+      if (!response.ok) throw new Error("Failed to fetch prediction");
       const data = await response.json();
-      setCities(data.cities || []);
+      
+      // Update city data with coordinates and location name
+      const cityPrediction = data.cities[0];
+      cityPrediction.city = locationName;
+      cityPrediction.latitude = lat;
+      cityPrediction.longitude = lon;
+      
+      // Add to cities list
+      setCities(prev => [...prev, cityPrediction]);
+      
+      // Clear coordinate inputs
+      setLatitude("");
+      setLongitude("");
     } catch (err) {
-      setError(err.message || "Failed to load cities");
-      console.error("Error loading cities:", err);
+      console.error("Error fetching prediction for coordinates:", err);
+      setCoordinateError("Failed to fetch prediction. Please try again.");
+      // Remove from customCities if prediction failed
+      setCustomCities(prev => prev.filter(c => c.city !== locationName));
     } finally {
       setLoading(false);
     }
@@ -50,15 +118,6 @@ export default function MultiCityScan() {
         element.scrollIntoView({ behavior: "smooth" });
       }
     }, 100);
-  };
-
-  const handleRefresh = () => {
-    loadSampleCities();
-  };
-
-  const handleLimitChange = (e) => {
-    const newLimit = Math.max(5, Math.min(50, parseInt(e.target.value) || 15));
-    setCityLimit(newLimit);
   };
 
   const searchCities = async (query) => {
@@ -87,12 +146,26 @@ export default function MultiCityScan() {
     searchCities(query);
   };
 
-  const handleAddCity = async (cityName) => {
-    if (customCities.includes(cityName)) return;
+  const handleAddCity = async (cityName, lat = null, lon = null) => {
+    // Check if city already exists
+    if (customCities.some(c => c.city === cityName)) return;
 
-    setCustomCities([...customCities, cityName]);
+    const cityData = { city: cityName };
+    if (lat !== null && lat !== "" && lon !== null && lon !== "") {
+      const latNum = parseFloat(lat);
+      const lonNum = parseFloat(lon);
+      if (!isNaN(latNum) && !isNaN(lonNum)) {
+        cityData.latitude = latNum;
+        cityData.longitude = lonNum;
+      }
+    }
+
+    setCustomCities([...customCities, cityData]);
     setSearchQuery("");
     setSearchResults([]);
+    setLatitude("");
+    setLongitude("");
+    setCoordinateError("");
 
     // Fetch prediction for this city
     try {
@@ -104,16 +177,24 @@ export default function MultiCityScan() {
       if (!response.ok) throw new Error("Failed to fetch prediction");
       const data = await response.json();
       
+      // Update city data with user-provided coordinates if available
+      const cityPrediction = data.cities[0];
+      if (cityData.latitude !== undefined && cityData.longitude !== undefined) {
+        cityPrediction.latitude = cityData.latitude;
+        cityPrediction.longitude = cityData.longitude;
+      }
+      
       // Add to cities list
-      setCities(prev => [...prev, ...data.cities]);
+      setCities(prev => [...prev, cityPrediction]);
     } catch (err) {
       console.error("Error fetching city prediction:", err);
     }
   };
 
   const handleRemoveCity = (cityName) => {
-    setCustomCities(customCities.filter(c => c !== cityName));
+    setCustomCities(customCities.filter(c => c.city !== cityName));
     setCities(cities.filter(c => c.city !== cityName));
+    setCoordinateError("");
   };
 
   const getRiskColor = (riskLevel) => {
@@ -144,32 +225,13 @@ export default function MultiCityScan() {
     <div className="multi-city-scan">
       {/* Header Section */}
       <div className="scan-header">
-        <h1>🌍 Multi-City Flood Scan</h1>
+        <h1>🌍 Multi-Place Flood Scan</h1>
         <p>Real-time flood risk assessment across multiple cities</p>
-      </div>
-
-      {/* Controls Section */}
-      <div className="scan-controls">
-        <div className="control-group">
-          <label htmlFor="city-limit">Default Cities:</label>
-          <input
-            id="city-limit"
-            type="number"
-            min="5"
-            max="50"
-            value={cityLimit}
-            onChange={handleLimitChange}
-            disabled={loading}
-          />
-        </div>
-        <button className="btn btn-primary" onClick={handleRefresh} disabled={loading}>
-          {loading ? "Loading..." : "🔄 Refresh Scan"}
-        </button>
       </div>
 
       {/* City Search and Add */}
       <div className="city-search-section">
-        <h3>➕ Add Custom Cities</h3>
+        <h3>➕ Add Custom Places</h3>
         <div className="search-container">
           <input
             type="text"
@@ -185,25 +247,86 @@ export default function MultiCityScan() {
                 <div
                   key={city}
                   className="search-result-item"
-                  onClick={() => handleAddCity(city)}
+                  onClick={() => handleAddCity(city, latitude, longitude)}
                 >
                   {city}
-                  {customCities.includes(city) && <span className="added-badge">✓ Added</span>}
+                  {customCities.some(c => c.city === city) && <span className="added-badge">✓ Added</span>}
                 </div>
               ))}
             </div>
           )}
         </div>
+        <div className="coordinates-input-group">
+          <div className="coordinate-input">
+            <label htmlFor="latitude-input">Latitude:</label>
+            <input
+              id="latitude-input"
+              type="number"
+              step="any"
+              className="coordinate-field"
+              placeholder="e.g., 12.9716"
+              value={latitude}
+              onChange={(e) => {
+                setLatitude(e.target.value);
+                setCoordinateError("");
+              }}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleAddByCoordinates();
+                }
+              }}
+            />
+          </div>
+          <div className="coordinate-input">
+            <label htmlFor="longitude-input">Longitude:</label>
+            <input
+              id="longitude-input"
+              type="number"
+              step="any"
+              className="coordinate-field"
+              placeholder="e.g., 77.5946"
+              value={longitude}
+              onChange={(e) => {
+                setLongitude(e.target.value);
+                setCoordinateError("");
+              }}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  handleAddByCoordinates();
+                }
+              }}
+            />
+          </div>
+          <div className="coordinate-add-button">
+            <button
+              className="btn btn-primary"
+              onClick={handleAddByCoordinates}
+              disabled={loading || !latitude.trim() || !longitude.trim()}
+            >
+              {loading ? "Adding..." : "➕ Add Location"}
+            </button>
+          </div>
+        </div>
+        {coordinateError && (
+          <div className="coordinate-error">{coordinateError}</div>
+        )}
         {customCities.length > 0 && (
           <div className="custom-cities-list">
-            <h4>Custom Cities ({customCities.length}):</h4>
+            <h4>Selected Places ({customCities.length}):</h4>
             <div className="custom-cities-tags">
-              {customCities.map((city) => (
-                <div key={city} className="city-tag">
-                  {city}
+              {customCities.map((cityData) => (
+                <div key={cityData.city} className="city-tag">
+                  <div className="city-tag-content">
+                    <span className="city-name">{cityData.city}</span>
+                    {cityData.latitude !== undefined && cityData.longitude !== undefined && (
+                      <span className="city-coords">
+                        ({cityData.latitude.toFixed(4)}, {cityData.longitude.toFixed(4)})
+                      </span>
+                    )}
+                  </div>
                   <button
                     className="remove-city-btn"
-                    onClick={() => handleRemoveCity(city)}
+                    onClick={() => handleRemoveCity(cityData.city)}
                     title="Remove city"
                   >
                     ✕
@@ -222,7 +345,7 @@ export default function MultiCityScan() {
         <div className="stats-grid">
           <div className="stat-card total">
             <div className="stat-value">{stats.total}</div>
-            <div className="stat-label">Cities Scanned</div>
+            <div className="stat-label">Places Scanned</div>
           </div>
           <div className="stat-card critical">
             <div className="stat-value">{stats.critical}</div>

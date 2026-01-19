@@ -2,6 +2,7 @@
 Multi-city utilities for flood risk visualization
 Provides functions to get city data with flood predictions
 """
+import re
 import requests
 import pandas as pd
 import logging
@@ -94,14 +95,36 @@ def fetch_live_weather_for_city(lat: float, lon: float) -> Dict[str, Any]:
 def get_flood_prediction_for_city(city_name: str) -> Dict[str, Any]:
     """
     Get flood prediction for a city using live weather data.
+    Also accepts coordinates in format "lat,lon".
     
     Args:
-        city_name: Name of the city
+        city_name: Name of the city or coordinates in format "lat,lon"
     
     Returns:
         Dictionary with prediction data including probability and risk level
     """
-    coords = get_city_coordinates(city_name)
+    # Check if city_name is in coordinate format (e.g., "12.922, 77.505")
+    coord_pattern = r'^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$'
+    coords = None
+    
+    if re.match(coord_pattern, city_name.strip()):
+        # Parse coordinates directly
+        parts = [p.strip() for p in city_name.split(',')]
+        if len(parts) == 2:
+            try:
+                lat = float(parts[0])
+                lon = float(parts[1])
+                # Validate ranges
+                if -90 <= lat <= 90 and -180 <= lon <= 180:
+                    coords = (lat, lon)
+                    city_name = f"Location ({lat:.4f}, {lon:.4f})"
+            except ValueError:
+                pass
+    
+    # If not coordinates, try geocoding
+    if coords is None:
+        coords = get_city_coordinates(city_name)
+    
     if not coords:
         return {
             "city": city_name,
