@@ -203,10 +203,10 @@
   margin-bottom: 40px;
 }
 
-.weather-section h3 {
-  color: var(--muted);
+.section-subtitle {
+  color: #38bdf8; /* Cyan-400 */
   margin-bottom: 20px;
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -214,8 +214,15 @@
 
 .weather-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 1024px) {
+  .weather-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
@@ -227,33 +234,31 @@
 .weather-card {
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  background: color-mix(in oklab, var(--card-solid) 55%, transparent);
-  border: 1px solid var(--border);
+  padding: 16px 20px;
+  background: rgba(15, 23, 42, 0.6); /* Slate-900 with alpha */
+  border: 1px solid rgba(56, 189, 248, 0.2); /* Cyan-400 with alpha */
   border-radius: 12px;
   transition: all 0.3s ease;
-  box-shadow: var(--shadow-sm);
 }
 
 .weather-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.4);
 }
 
 .weather-label {
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 800;
+  color: #94a3b8; /* Slate-400 */
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
 }
 
 .weather-value {
-  color: var(--text);
-  font-size: 1.8rem;
-  font-weight: 300;
+  color: #f1f5f9; /* Slate-100 */
+  font-size: 1.5rem;
+  font-weight: 800;
   letter-spacing: -0.5px;
 }
 
@@ -361,77 +366,93 @@
   margin-top: 30px;
 }
 
-.prediction-section h3 {
-  color: var(--muted);
-  margin-bottom: 20px;
-  font-size: 1.3rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.risk-card {
+.risk-analysis-card {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
-  padding: 24px;
-  background: color-mix(in oklab, var(--card-solid) 55%, transparent);
-  border-left: 5px solid;
+  padding: 24px 32px;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid rgba(56, 189, 248, 0.1);
   border-radius: 12px;
-  margin-bottom: 20px;
-  border: 1px solid var(--border);
-}
-
-.risk-item {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-bottom: 24px;
 }
 
 @media (max-width: 640px) {
-  .risk-card {
+  .risk-analysis-card {
     grid-template-columns: 1fr;
     gap: 20px;
   }
 }
 
+.risk-analysis-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .risk-label {
-  color: var(--muted);
-  font-size: 0.85rem;
-  font-weight: 800;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
 }
 
 .risk-value {
-  font-size: 1.875rem;
+  font-size: 1.8rem;
   font-weight: 800;
-  color: var(--text);
   letter-spacing: -0.5px;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: nowrap;
+}
+
+.recommendation-section {
+  margin-top: 32px;
+  margin-bottom: 24px;
 }
 
 .recommendation-card {
-  background: color-mix(in oklab, var(--warn) 10%, var(--card));
-  padding: 24px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 20px 24px;
   border-radius: 12px;
-  border-left: 4px solid var(--warn);
-  border: 1px solid color-mix(in oklab, var(--warn) 30%, var(--border));
+  border: 1px solid rgba(56, 189, 248, 0.1);
 }
 
-.recommendation-card h4 {
-  color: var(--text);
-  margin-bottom: 12px;
-  font-size: 1.1rem;
+.recommendation-title {
+  color: #fbbf24; /* Amber-400 */
+  margin-bottom: 8px;
+  font-size: 1rem;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.recommendation-card p {
-  color: var(--muted);
-  line-height: 1.7;
+.recommendation-text {
+  color: #cbd5e1; /* Slate-300 */
+  line-height: 1.6;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.explain-button {
+  background: linear-gradient(135deg, #a78bfa, #8b5cf6); /* Violet gradient */
+  color: white;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.explain-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+  filter: brightness(1.1);
 }
 
 /* Forecast Grid */

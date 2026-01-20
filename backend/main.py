@@ -346,7 +346,7 @@ def live_prediction(place: str):
 
     return {
     "location": place,
-    "probability": round(float(prob), 3),
+    "probability": float(prob),
     "risk_level": risk,
     "recommendation": recommendations[risk],
     "shap_explanation": shap_explanation,
@@ -389,7 +389,7 @@ def forecast_3day(place: str):
 
         results.append({
             "day": f"Day {i+1}",
-            "probability": round(float(prob), 3),
+            "probability": float(prob),
             "risk": classify_risk(prob)
         })
 

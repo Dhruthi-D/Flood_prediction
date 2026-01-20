@@ -204,28 +204,28 @@ export default function LivePredictionPage() {
 
               {live.weather && (
                 <div className="weather-section">
-                  <h3>Weather Conditions</h3>
+                  <h3 className="section-subtitle">WEATHER CONDITIONS</h3>
                   <div className="weather-grid">
                     <div className="weather-card">
-                      <span className="weather-label">Temperature: </span>
+                      <span className="weather-label">TEMPERATURE</span>
                       <span className="weather-value">
                         {live.weather.temperature}°C
                       </span>
                     </div>
                     <div className="weather-card">
-                      <span className="weather-label">Humidity: </span>
+                      <span className="weather-label">HUMIDITY</span>
                       <span className="weather-value">
                         {live.weather.humidity}%
                       </span>
                     </div>
                     <div className="weather-card">
-                      <span className="weather-label">Rainfall: </span>
+                      <span className="weather-label">RAINFALL</span>
                       <span className="weather-value">
                         {live.weather.rainfall} mm
                       </span>
                     </div>
                     <div className="weather-card">
-                      <span className="weather-label">Wind Speed: </span>
+                      <span className="weather-label">WIND SPEED</span>
                       <span className="weather-value">
                         {live.weather.wind_speed} km/h
                       </span>
@@ -235,13 +235,13 @@ export default function LivePredictionPage() {
               )}
 
               <div className="prediction-section">
-                <h3>Flood Risk Analysis</h3>
+                <h3 className="section-subtitle">FLOOD RISK ANALYSIS</h3>
                 <div
-                  className="risk-card"
-                  style={{ borderLeftColor: getRiskColor(live.risk_level) }}
+                  className="risk-analysis-card"
+                  style={{ borderLeft: `5px solid ${getRiskColor(live.risk_level)}` }}
                 >
-                  <div className="risk-item">
-                    <span className="risk-label">Risk Level: </span>
+                  <div className="risk-analysis-item">
+                    <span className="risk-label">RISK LEVEL</span>
                     <span
                       className="risk-value"
                       style={{ color: getRiskColor(live.risk_level) }}
@@ -249,32 +249,29 @@ export default function LivePredictionPage() {
                       {live.risk_level}
                     </span>
                   </div>
-                  <div className="risk-item">
-                    <span className="risk-label">Probability: </span>
+                  <div className="risk-analysis-item">
+                    <span className="risk-label">PROBABILITY</span>
                     <span className="risk-value">
                       {typeof live.probability === 'number' 
-                        ? (live.probability * 100).toFixed(2) + '%'
+                        ? (Math.floor(live.probability * 100000) / 1000).toFixed(3) + '%'
                         : live.probability?.toString().includes('%')
                           ? live.probability
-                          : (parseFloat(live.probability || 0) * 100).toFixed(2) + '%'}
+                          : (Math.floor(parseFloat(live.probability || 0) * 100000) / 1000).toFixed(3) + '%'}
                     </span>
                   </div>
                 </div>
 
-                <div className="recommendation-card">
-                  <h4>💡 Recommendation</h4>
-                  <p>{live.recommendation}</p>
+                <div className="recommendation-section">
+                  <div className="recommendation-card">
+                    <h4 className="recommendation-title">💡 Recommendation</h4>
+                    <p className="recommendation-text">{live.recommendation}</p>
+                  </div>
                 </div>
 
                 <button
-                  className="action-button btn btnPrimary"
+                  className="explain-button"
                   onClick={explainLivePrediction}
                   disabled={shapLoading}
-                  style={{
-                    marginTop: "16px",
-                    background:
-                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                  }}
                 >
                   {shapLoading
                     ? "Generating Explanation..."
@@ -329,7 +326,7 @@ export default function LivePredictionPage() {
                             marginLeft: "8px",
                           }}
                         >
-                          {(liveShapExplanation.prediction * 100).toFixed(2)}%
+                          {(Math.floor(liveShapExplanation.prediction * 100000) / 1000).toFixed(3)}%
                           flood risk
                         </span>
                       </div>
@@ -341,7 +338,7 @@ export default function LivePredictionPage() {
                         }}
                       >
                         Base model probability:{" "}
-                        {(liveShapExplanation.base_value * 100).toFixed(2)}%
+                        {(Math.floor(liveShapExplanation.base_value * 100000) / 1000).toFixed(3)}%
                       </div>
                     </div>
 
@@ -459,6 +456,39 @@ export default function LivePredictionPage() {
           <div className="cardBody">
             <div style={{ marginBottom: 20 }}>
               <ForecastChart data={forecast} />
+            </div>
+            
+            <div className="forecast-grid">
+              {forecast.map((f, idx) => (
+                <div 
+                  key={idx} 
+                  className="forecast-card"
+                  style={{ border: `1px solid ${getRiskColor(f.risk)}` }}
+                >
+                  <h3 className="forecast-card-title">{f.day}</h3>
+                  <div className="forecast-row">
+                    <span className="forecast-label">Risk Level:</span>
+                    <span 
+                      className="forecast-value" 
+                      style={{ color: getRiskColor(f.risk), fontWeight: 'bold' }}
+                    >
+                      {f.risk}
+                    </span>
+                  </div>
+                  <hr className="forecast-divider" />
+                  <div className="forecast-row">
+                    <span className="forecast-label">Probability:</span>
+                    <span className="forecast-value-group">
+                      <span className="forecast-pct">
+                        {(Math.floor(Number(f.probability) * 100000) / 1000).toFixed(3)}%
+                      </span>
+                      <span className="forecast-raw">
+                        {Number(f.probability).toFixed(3)}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -64,8 +64,8 @@ export default function ForecastChart({ data = [] }) {
               />
 
               {/* probability text */}
-              <text x={labelX} y={y - 6} textAnchor="middle" fontSize={12} fill="#e6f4ff">
-                {(pct * 100).toFixed(2)}%
+              <text x={labelX} y={y - 10} textAnchor="middle" fontSize={12} fontWeight="bold" fill="#e6f4ff">
+                {(Math.floor(pct * 100000) / 1000).toFixed(3)}%
               </text>
 
               {/* day label */}

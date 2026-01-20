@@ -76,7 +76,7 @@ export default function BoxSelectMap({ onBoxSelected, selectMode, onSelectComple
     <MapContainer
       center={[17.385, 78.486]}
       zoom={13}
-      style={{ height: "450px", width: "100%" }}
+      style={{ height: "600px", width: "100%" }}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <BoxSelector

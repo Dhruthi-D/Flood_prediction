@@ -407,22 +407,22 @@ export default function Dashboard() {
 
                 {live.weather && (
                   <div className="weather-section">
-                    <h3>Weather Conditions</h3>
+                    <h3 className="section-subtitle">WEATHER CONDITIONS</h3>
                     <div className="weather-grid">
                       <div className="weather-card">
-                        <span className="weather-label">Temperature</span>
+                        <span className="weather-label">TEMPERATURE</span>
                         <span className="weather-value">{live.weather.temperature}°C</span>
                       </div>
                       <div className="weather-card">
-                        <span className="weather-label">Humidity</span>
+                        <span className="weather-label">HUMIDITY</span>
                         <span className="weather-value">{live.weather.humidity}%</span>
                       </div>
                       <div className="weather-card">
-                        <span className="weather-label">Rainfall</span>
+                        <span className="weather-label">RAINFALL</span>
                         <span className="weather-value">{live.weather.rainfall}mm</span>
                       </div>
                       <div className="weather-card">
-                        <span className="weather-label">Wind Speed</span>
+                        <span className="weather-label">WIND SPEED</span>
                         <span className="weather-value">{live.weather.wind_speed} km/h</span>
                       </div>
                     </div>
@@ -430,10 +430,10 @@ export default function Dashboard() {
                 )}
 
                 <div className="prediction-section">
-                  <h3>Flood Risk Analysis</h3>
-                  <div className="risk-card" style={{ borderLeftColor: getRiskColor(live.risk_level) }}>
-                    <div className="risk-item">
-                      <span className="risk-label">Risk Level</span>
+                  <h3 className="section-subtitle">FLOOD RISK ANALYSIS</h3>
+                  <div className="risk-analysis-card" style={{ borderLeft: `5px solid ${getRiskColor(live.risk_level)}` }}>
+                    <div className="risk-analysis-item">
+                      <span className="risk-label">RISK LEVEL</span>
                       <span 
                         className="risk-value" 
                         style={{ color: getRiskColor(live.risk_level) }}
@@ -441,22 +441,25 @@ export default function Dashboard() {
                         {live.risk_level}
                       </span>
                     </div>
-                    <div className="risk-item">
-                      <span className="risk-label">Probability</span>
-                      <span className="risk-value">{live.probability}%</span>
+                    <div className="risk-analysis-item">
+                      <span className="risk-label">PROBABILITY</span>
+                      <span className="risk-value">
+                        {(Math.floor(Number(live.probability) * 100000) / 1000).toFixed(3)}%
+                      </span>
                     </div>
                   </div>
 
-                  <div className="recommendation-card">
-                    <h4>💡 Recommendation</h4>
-                    <p>{live.recommendation}</p>
+                  <div className="recommendation-section">
+                    <div className="recommendation-card">
+                      <h4 className="recommendation-title">💡 Recommendation</h4>
+                      <p className="recommendation-text">{live.recommendation}</p>
+                    </div>
                   </div>
 
                   <button 
-                    className="action-button btn btnPrimary" 
+                    className="explain-button" 
                     onClick={explainLivePrediction}
                     disabled={shapLoading}
-                    style={{ marginTop: "16px", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
                   >
                     {shapLoading ? "Generating Explanation..." : "🔍 Explain This Prediction"}
                   </button>
@@ -474,11 +477,11 @@ export default function Dashboard() {
                         <div style={{ marginBottom: "8px" }}>
                           <strong style={{ fontSize: "16px", color: "#1e40af" }}>Prediction:</strong> 
                           <span style={{ fontSize: "20px", fontWeight: "bold", color: liveShapExplanation.prediction > 0.5 ? "#dc2626" : "#16a34a", marginLeft: "8px" }}>
-                            {(liveShapExplanation.prediction * 100).toFixed(2)}% flood risk
+                          {(Math.floor(liveShapExplanation.prediction * 100000) / 1000).toFixed(3)}% flood risk
                           </span>
                         </div>
                         <div style={{ fontSize: "13px", color: "#666", fontStyle: "italic" }}>
-                          Base model probability: {(liveShapExplanation.base_value * 100).toFixed(2)}%
+                          Base model probability: {(Math.floor(liveShapExplanation.base_value * 100000) / 1000).toFixed(3)}%
                         </div>
                       </div>
                       
@@ -537,7 +540,7 @@ export default function Dashboard() {
             </div>
             <div className="cardBody">
             <button 
-              className="action-button btn btnPrimary" 
+              className="action-button forecast-btn" 
               onClick={runForecast}
               disabled={loading}
             >
@@ -555,21 +558,29 @@ export default function Dashboard() {
                     <div 
                       key={idx} 
                       className="forecast-card"
-                      style={{ borderTopColor: getRiskColor(f.risk) }}
+                      style={{ border: `1px solid ${getRiskColor(f.risk)}` }}
                     >
-                      <h4>{f.day}</h4>
-                      <div className="forecast-item">
-                        <span>Risk Level:</span>
+                      <h3 className="forecast-card-title">{f.day}</h3>
+                      <div className="forecast-row">
+                        <span className="forecast-label">Risk Level:</span>
                         <span 
-                          className="forecast-risk" 
-                          style={{ color: getRiskColor(f.risk) }}
+                          className="forecast-value" 
+                          style={{ color: getRiskColor(f.risk), fontWeight: 'bold' }}
                         >
                           {f.risk}
                         </span>
                       </div>
-                      <div className="forecast-item">
-                        <span>Probability:</span>
-                        <span className="forecast-probability">{(Number(f.probability) * 100).toFixed(2)}%<span className="raw-value">{Number(f.probability)}</span></span>
+                      <hr className="forecast-divider" />
+                      <div className="forecast-row">
+                        <span className="forecast-label">Probability:</span>
+                        <span className="forecast-value-group">
+                          <span className="forecast-pct">
+                            {(Math.floor(Number(f.probability) * 100000) / 1000).toFixed(3)}%
+                          </span>
+                          <span className="forecast-raw">
+                            {Number(f.probability).toFixed(3)}
+                          </span>
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -676,23 +687,25 @@ export default function Dashboard() {
             </div>
 
             {customResult && (
-              <div style={{ marginTop: 20 }}>
-                <div className="risk-card" style={{ borderLeftColor: getRiskColor(customResult.risk_level) }}>
-                  <div className="risk-item">
-                    <span className="risk-label">Risk Level</span>
+              <div className="results" style={{ marginTop: 20 }}>
+                <h3 className="section-subtitle">CUSTOM PREDICTION ANALYSIS</h3>
+                <div className="risk-analysis-card" style={{ borderLeft: `5px solid ${getRiskColor(customResult.risk_level)}` }}>
+                  <div className="risk-analysis-item">
+                    <span className="risk-label">RISK LEVEL</span>
                     <span className="risk-value" style={{ color: getRiskColor(customResult.risk_level) }}>{customResult.risk_level}</span>
                   </div>
-                  <div className="risk-item">
-                    <span className="risk-label">Probability</span>
-                    <span className="risk-value">{(Number(customResult.probability) * 100).toFixed(2)}%<span className="raw-value">{Number(customResult.probability)}</span></span>
+                  <div className="risk-analysis-item">
+                    <span className="risk-label">PROBABILITY</span>
+                    <span className="risk-value">
+                      {(Math.floor(Number(customResult.probability) * 100000) / 1000).toFixed(3)}%
+                    </span>
                   </div>
                 </div>
 
                 <button 
-                  className="action-button btn btnPrimary" 
+                  className="explain-button" 
                   onClick={explainCustomPrediction}
                   disabled={shapLoading}
-                  style={{ marginTop: "16px", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
                 >
                   {shapLoading ? "Generating Explanation..." : "🔍 Explain This Prediction"}
                 </button>
@@ -710,11 +723,11 @@ export default function Dashboard() {
                       <div style={{ marginBottom: "8px" }}>
                         <strong style={{ fontSize: "16px", color: "#1e40af" }}>Prediction:</strong> 
                         <span style={{ fontSize: "20px", fontWeight: "bold", color: customShapExplanation.prediction > 0.5 ? "#dc2626" : "#16a34a", marginLeft: "8px" }}>
-                          {(customShapExplanation.prediction * 100).toFixed(2)}% flood risk
+                        {(Math.floor(customShapExplanation.prediction * 100000) / 1000).toFixed(3)}% flood risk
                         </span>
                       </div>
                       <div style={{ fontSize: "13px", color: "#666", fontStyle: "italic" }}>
-                        Base model probability: {(customShapExplanation.base_value * 100).toFixed(2)}%
+                        Base model probability: {(Math.floor(customShapExplanation.base_value * 100000) / 1000).toFixed(3)}%
                       </div>
                     </div>
                     

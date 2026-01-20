@@ -50,7 +50,7 @@ export default function AreaHeatmapMap({ points }) {
       <MapContainer
         center={[points[0].lat, points[0].lon]}
         zoom={13}
-        style={{ height: "450px", marginTop: "20px" }}
+        style={{ height: "600px", marginTop: "20px" }}
         zoomControl={false}
         dragging={false}
         doubleClickZoom={false}

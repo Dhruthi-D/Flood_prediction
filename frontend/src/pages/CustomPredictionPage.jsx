@@ -269,15 +269,16 @@ export default function CustomPredictionPage() {
           {error && <div className="error-message alert">{error}</div>}
 
           {customResult && (
-            <div style={{ marginTop: 20 }}>
+            <div className="results" style={{ marginTop: 20 }}>
+              <h3 className="section-subtitle">CUSTOM PREDICTION ANALYSIS</h3>
               <div
-                className="risk-card"
+                className="risk-analysis-card"
                 style={{
-                  borderLeftColor: getRiskColor(customResult.risk_level),
+                  borderLeft: `5px solid ${getRiskColor(customResult.risk_level)}`,
                 }}
               >
-                <div className="risk-item">
-                  <span className="risk-label">Risk Level: </span>
+                <div className="risk-analysis-item">
+                  <span className="risk-label">RISK LEVEL</span>
                   <span
                     className="risk-value"
                     style={{
@@ -287,23 +288,18 @@ export default function CustomPredictionPage() {
                     {customResult.risk_level}
                   </span>
                 </div>
-                <div className="risk-item">
-                  <span className="risk-label">Probability: </span>
+                <div className="risk-analysis-item">
+                  <span className="risk-label">PROBABILITY</span>
                   <span className="risk-value">
-                    {(Number(customResult.probability) * 100).toFixed(2)}%
+                    {(Math.floor(Number(customResult.probability) * 100000) / 1000).toFixed(3)}%
                   </span>
                 </div>
               </div>
 
               <button
-                className="action-button btn btnPrimary"
+                className="explain-button"
                 onClick={explainCustomPrediction}
                 disabled={shapLoading}
-                style={{
-                  marginTop: "16px",
-                  background:
-                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                }}
               >
                 {shapLoading
                   ? "Generating Explanation..."
@@ -358,7 +354,7 @@ export default function CustomPredictionPage() {
                           marginLeft: "8px",
                         }}
                       >
-                        {(customShapExplanation.prediction * 100).toFixed(2)}%
+                        {(Math.floor(customShapExplanation.prediction * 100000) / 1000).toFixed(3)}%
                         flood risk
                       </span>
                     </div>
@@ -370,7 +366,7 @@ export default function CustomPredictionPage() {
                       }}
                     >
                       Base model probability:{" "}
-                      {(customShapExplanation.base_value * 100).toFixed(2)}%
+                      {(Math.floor(customShapExplanation.base_value * 100000) / 1000).toFixed(3)}%
                     </div>
                   </div>
 
