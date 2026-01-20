@@ -2,7 +2,6 @@ import pickle
 import os
 import logging
 import numpy as np
-import shap
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -14,13 +13,30 @@ with open(MODEL_PATH, "rb") as f:
 
 logger.info("Expected features: %s", getattr(flood_model, "feature_names_in_", None))
 
-# Initialize SHAP TreeExplainer for XGBoost model
-try:
-    shap_explainer = shap.TreeExplainer(flood_model)
-    logger.info("SHAP TreeExplainer initialized successfully")
-except Exception as e:
-    logger.warning("Failed to initialize SHAP TreeExplainer: %s", e)
-    shap_explainer = None
+# Initialize SHAP TreeExplainer for XGBoost model.
+# NOTE: importing `shap` can transitively import `cv2` (OpenCV). If the user's
+# NumPy/OpenCV wheels are mismatched, importing at module import-time can crash
+# uvicorn's reload subprocess. We therefore lazy-load SHAP on demand.
+shap_explainer = None
+_shap_init_error = None
+
+
+def _get_shap_explainer():
+    global shap_explainer, _shap_init_error
+    if shap_explainer is not None:
+        return shap_explainer
+    if _shap_init_error is not None:
+        raise _shap_init_error
+
+    try:
+        import shap  # type: ignore
+        shap_explainer = shap.TreeExplainer(flood_model)
+        logger.info("SHAP TreeExplainer initialized successfully")
+        return shap_explainer
+    except Exception as e:
+        _shap_init_error = e
+        logger.warning("Failed to initialize SHAP TreeExplainer: %s", e)
+        raise
 
 
 def get_feature_names():
@@ -126,8 +142,10 @@ def explain_instance_shap(features):
             "prediction": float
         }
     """
-    if shap_explainer is None:
-        raise ValueError("SHAP explainer not initialized")
+    try:
+        explainer = _get_shap_explainer()
+    except Exception as e:
+        raise ValueError(f"SHAP explainer not available: {e}") from e
     
     try:
         arr = np.array(features, dtype=np.float32)
@@ -135,7 +153,7 @@ def explain_instance_shap(features):
             arr = arr.reshape(1, -1)
         
         # Get SHAP values for positive class (flood prediction)
-        shap_values = shap_explainer.shap_values(arr)
+        shap_values = explainer.shap_values(arr)
         
         # Handle different SHAP output formats
         if isinstance(shap_values, list):
@@ -146,8 +164,8 @@ def explain_instance_shap(features):
             shap_vals = shap_values[0] if shap_values.ndim > 1 else shap_values
         
         # Get base value (expected model output)
-        if hasattr(shap_explainer, 'expected_value'):
-            base_value = float(shap_explainer.expected_value[1] if isinstance(shap_explainer.expected_value, (list, np.ndarray)) else shap_explainer.expected_value)
+        if hasattr(explainer, 'expected_value'):
+            base_value = float(explainer.expected_value[1] if isinstance(explainer.expected_value, (list, np.ndarray)) else explainer.expected_value)
         else:
             base_value = 0.5
         

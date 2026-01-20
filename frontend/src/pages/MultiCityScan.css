@@ -8,8 +8,8 @@
 .scan-header {
   text-align: center;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--accent-contrast);
   border-radius: 0.5rem;
 }
 
@@ -29,10 +29,11 @@
   gap: 1rem;
   align-items: flex-end;
   padding: 1.5rem;
-  background-color: #f8fafc;
+  background: var(--card);
   border-radius: 0.5rem;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--accent);
   flex-wrap: wrap;
+  border: 1px solid var(--border);
 }
 
 .control-group {
@@ -43,22 +44,24 @@
 
 .control-group label {
   font-weight: 600;
-  color: #333;
+  color: var(--muted);
   font-size: 0.9rem;
 }
 
 .control-group input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border);
   border-radius: 0.375rem;
   font-size: 1rem;
   min-width: 100px;
+  background: color-mix(in oklab, var(--card-solid) 65%, transparent);
+  color: var(--text);
 }
 
 .control-group input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: color-mix(in oklab, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 4px var(--focus);
 }
 
 .btn {
@@ -72,8 +75,8 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: var(--accent-contrast);
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -87,19 +90,20 @@
 }
 
 .btn-secondary {
-  background-color: #e2e8f0;
-  color: #333;
+  background-color: color-mix(in oklab, var(--card-solid) 70%, transparent);
+  color: var(--text);
+  border: 1px solid var(--border);
 }
 
 .btn-secondary:hover {
-  background-color: #cbd5e1;
+  background-color: color-mix(in oklab, var(--card-solid) 82%, transparent);
 }
 
 .error-message {
   padding: 1rem;
-  background-color: #fee2e2;
-  border-left: 4px solid #dc2626;
-  color: #991b1b;
+  background-color: color-mix(in oklab, var(--danger) 10%, transparent);
+  border-left: 4px solid var(--danger);
+  color: color-mix(in oklab, var(--danger) 80%, var(--text));
   border-radius: 0.375rem;
   font-weight: 500;
 }
@@ -162,7 +166,7 @@
 
 .cities-list-section h2 {
   margin: 0;
-  color: #333;
+  color: var(--text);
   font-size: 1.5rem;
 }
 
@@ -174,10 +178,11 @@
 
 .city-card {
   padding: 1.5rem;
-  background: white;
+  background: var(--card);
   border-radius: 0.5rem;
-  border-left: 4px solid #667eea;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid var(--accent);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -191,7 +196,7 @@
 
 .city-card h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text);
   font-size: 1.2rem;
 }
 
@@ -211,19 +216,19 @@
 }
 
 .info-row .label {
-  color: #666;
+  color: var(--muted);
   font-weight: 500;
 }
 
 .info-row .value {
   font-weight: 600;
-  color: #333;
+  color: var(--text);
 }
 
 .view-btn {
   padding: 0.5rem 1rem;
-  background-color: #667eea;
-  color: white;
+  background-color: var(--accent);
+  color: var(--accent-contrast);
   border: none;
   border-radius: 0.375rem;
   font-size: 0.9rem;
@@ -233,15 +238,16 @@
 }
 
 .view-btn:hover {
-  background-color: #764ba2;
+  background-color: var(--accent-2);
   transform: translateX(4px);
 }
 
 .simulation-section {
   padding: 2rem;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  background: var(--card);
   border-radius: 0.5rem;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid var(--accent);
+  border: 1px solid var(--border);
 }
 
 .simulation-header {
@@ -250,20 +256,21 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 1px solid var(--border);
 }
 
 .simulation-header h2 {
   margin: 0;
-  color: #333;
+  color: var(--text);
   font-size: 1.5rem;
 }
 
 .simulation-container {
-  background: white;
+  background: color-mix(in oklab, var(--card-solid) 70%, transparent);
   padding: 1.5rem;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 /* Responsive design */
@@ -331,15 +338,16 @@
 /* City Search Section */
 .city-search-section {
   padding: 1.5rem;
-  background: white;
+  background: var(--card);
   border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #667eea;
+  box-shadow: var(--shadow-sm);
+  border-left: 4px solid var(--accent);
+  border: 1px solid var(--border);
 }
 
 .city-search-section h3 {
   margin: 0 0 1rem 0;
-  color: #333;
+  color: var(--text);
   font-size: 1.25rem;
 }
 
@@ -351,16 +359,18 @@
 .city-search-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid #cbd5e1;
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   font-size: 1rem;
   transition: all 0.3s ease;
+  background: color-mix(in oklab, var(--card-solid) 65%, transparent);
+  color: var(--text);
 }
 
 .city-search-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: color-mix(in oklab, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 4px var(--focus);
 }
 
 .search-loading {
@@ -550,6 +560,7 @@
   transform: scale(1.1);
 }
 
+@media (max-width: 768px) {
   .cities-grid {
     grid-template-columns: 1fr;
   }

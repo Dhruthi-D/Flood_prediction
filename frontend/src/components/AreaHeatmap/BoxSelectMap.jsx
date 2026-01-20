@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-function BoxSelector({ onBoxSelected }) {
+function BoxSelector({ onBoxSelected, selectMode, onSelectComplete }) {
   const map = useMap();
   const start = useRef(null);
   const rect = useRef(null);
@@ -12,6 +12,7 @@ function BoxSelector({ onBoxSelected }) {
     if (!map) return;
 
     const onMouseDown = (e) => {
+      if (!selectMode) return;
       start.current = e.latlng;
       map.dragging.disable();
 
@@ -22,7 +23,7 @@ function BoxSelector({ onBoxSelected }) {
     };
 
     const onMouseMove = (e) => {
-      if (!start.current) return;
+      if (!start.current || !selectMode) return;
 
       const bounds = L.latLngBounds(start.current, e.latlng);
 
@@ -39,7 +40,7 @@ function BoxSelector({ onBoxSelected }) {
     };
 
     const onMouseUp = (e) => {
-      if (!start.current) return;
+      if (!start.current || !selectMode) return;
 
       const bounds = L.latLngBounds(start.current, e.latlng);
       start.current = null;
@@ -51,6 +52,9 @@ function BoxSelector({ onBoxSelected }) {
         max_lat: bounds.getNorth(),
         max_lon: bounds.getEast(),
       });
+      if (onSelectComplete) {
+        onSelectComplete();
+      }
     };
 
     map.on("mousedown", onMouseDown);
@@ -62,22 +66,24 @@ function BoxSelector({ onBoxSelected }) {
       map.off("mousemove", onMouseMove);
       map.off("mouseup", onMouseUp);
     };
-  }, [map, onBoxSelected]);
+  }, [map, onBoxSelected, selectMode, onSelectComplete]);
 
   return null;
 }
 
-export default function BoxSelectMap({ onBoxSelected }) {
+export default function BoxSelectMap({ onBoxSelected, selectMode, onSelectComplete }) {
   return (
     <MapContainer
       center={[17.385, 78.486]}
       zoom={13}
       style={{ height: "450px", width: "100%" }}
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <BoxSelector
+        onBoxSelected={onBoxSelected}
+        selectMode={selectMode}
+        onSelectComplete={onSelectComplete}
       />
-      <BoxSelector onBoxSelected={onBoxSelected} />
     </MapContainer>
   );
 }

@@ -8,6 +8,8 @@ export default function AreaHeatmap() {
   const [heatmapData, setHeatmapData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [toast, setToast] = useState(null);
 
   const fetchHeatmap = async (bounds) => {
     setLoading(true);
@@ -40,24 +42,68 @@ export default function AreaHeatmap() {
     fetchHeatmap(bounds);
   };
 
+  const handleSelectToggle = () => {
+    if (selectMode) {
+      setSelectMode(false);
+    } else {
+      setHeatmapData([]);
+      setBox(null);
+      setSelectMode(true);
+    }
+  };
+
+  const handleSelectComplete = () => {
+    setSelectMode(false);
+    setToast("Area selected successfully");
+    setTimeout(() => setToast(null), 3000);
+  };
+
   return (
-    <div className="area-heatmap-container">
-      <h2>🗺️ Area Flood Risk Heatmap</h2>
-      <p>Drag to select an area (snipping-tool style)</p>
+    <div className="area-heatmap-container card">
+      <div className="cardHeader">
+        <p className="cardTitle">Area Flood Risk Heatmap</p>
+      </div>
+      <div className="cardBody">
+        <div className="area-map-wrapper">
+          <button
+            className={`select-area-btn ${selectMode ? "active" : ""}`}
+            onClick={handleSelectToggle}
+            title={selectMode ? "Cancel selection" : "Enable area selection"}
+          >
+            {selectMode ? "Cancel Selection" : "Select Area"}
+          </button>
 
-      <BoxSelectMap onBoxSelected={handleBoxSelected} />
+          {selectMode && (
+            <div className="select-hint">
+              Drag on the map to select a flood risk area
+            </div>
+          )}
 
-      {loading && <p className="loading">Generating heatmap report...</p>}
-      
-      {error && (
-        <div className="error-message" style={{ color: "red", marginTop: "10px", fontWeight: "bold" }}>
-          ❌ Error: {error}
+          <BoxSelectMap
+            onBoxSelected={handleBoxSelected}
+            selectMode={selectMode}
+            onSelectComplete={handleSelectComplete}
+          />
         </div>
-      )}
 
-      {heatmapData.length > 0 && !loading && (
-        <AreaHeatmapMap points={heatmapData} />
-      )}
+        {loading && (
+          <p className="loading">
+            <span className="spinner" /> Generating heatmap report...
+          </p>
+        )}
+
+        {error && (
+          <div className="error-message">
+            ❌ Error: {error}
+          </div>
+        )}
+
+        {heatmapData.length > 0 && !loading && (
+          <AreaHeatmapMap points={heatmapData} />
+        )}
+
+        {toast && <div className="heatmap-toast">{toast}</div>}
+      </div>
     </div>
   );
 }

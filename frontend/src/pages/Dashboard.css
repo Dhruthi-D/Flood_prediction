@@ -3,33 +3,26 @@
 }
 
 .dashboard-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding-bottom: 60px;
+  width: 100%;
+  padding-bottom: 12px;
 }
 
 /* Welcome Section */
 .welcome-section {
-  margin-bottom: 40px;
-  padding: 40px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(96, 184, 255, 0.08) 100%);
-  border-radius: 16px;
-  border: 2px solid rgba(96, 184, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(96, 184, 255, 0.1);
-  animation: fadeIn 0.5s ease;
+  margin-bottom: 16px;
 }
 
 .welcome-content h2 {
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 800;
-  color: #60b8ff;
+  color: var(--text);
   margin-bottom: 12px;
   letter-spacing: -0.5px;
 }
 
 .welcome-content p {
-  font-size: 1.1rem;
-  color: #b0d4e3;
+  font-size: 1rem;
+  color: var(--muted);
   font-weight: 400;
   letter-spacing: 0.3px;
 }
@@ -47,22 +40,10 @@
 
 /* Search Section */
 .search-section {
-  margin-bottom: 35px;
-  padding: 35px;
-  background: linear-gradient(135deg, rgba(11, 43, 138, 0.5) 0%, rgba(6, 28, 50, 0.7) 100%);
-  border-radius: 16px;
-  border: 2px solid rgba(96, 184, 255, 0.25);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(96, 184, 255, 0.1);
+  margin-bottom: 16px;
 }
 
-.search-section h3 {
-  margin-bottom: 20px;
-  color: #60b8ff;
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
+/* error-message now uses global `.alert` */
 
 .search-box {
   display: flex;
@@ -109,37 +90,28 @@
 
 /* Tabs */
 .tabs-container {
-  margin-bottom: 30px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: linear-gradient(180deg, rgba(8, 16, 51, 0.98) 0%, rgba(8, 16, 51, 0.95) 100%);
-  backdrop-filter: blur(10px);
-  padding: 15px 0;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(96, 184, 255, 0.1);
+  margin-bottom: 16px;
 }
 
 .tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 0 20px;
-  justify-content: center;
+  padding: 14px 14px 16px;
+  justify-content: flex-start;
 }
 
 .tab {
   padding: 12px 24px;
   font-size: 0.95rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(96, 184, 255, 0.1);
+  background: color-mix(in oklab, var(--card-solid) 40%, transparent);
+  color: var(--muted);
+  border: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
-  border-radius: 10px;
+  border-radius: 14px;
   position: relative;
   display: flex;
   align-items: center;
@@ -147,48 +119,21 @@
 }
 
 .tab:hover {
-  color: #60b8ff;
-  background: rgba(96, 184, 255, 0.1);
-  border-color: rgba(96, 184, 255, 0.3);
-  transform: translateY(-2px);
+  color: var(--text);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
 }
 
 .tab.active {
-  color: #60b8ff;
-  background: linear-gradient(135deg, rgba(96, 184, 255, 0.15) 0%, rgba(96, 184, 255, 0.08) 100%);
-  border-color: rgba(96, 184, 255, 0.5);
-  box-shadow: 0 4px 12px rgba(96, 184, 255, 0.2);
-}
-
-.tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 2px;
-  background: #60b8ff;
-  animation: tabGlow 0.3s ease forwards;
-  border-radius: 2px;
-}
-
-@keyframes tabGlow {
-  to {
-    width: 80%;
-  }
+  color: var(--accent-contrast);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: color-mix(in oklab, var(--accent) 55%, var(--border));
+  box-shadow: 0 12px 30px color-mix(in oklab, var(--accent) 22%, transparent);
 }
 
 /* Tab Content */
 .tab-content {
-  background: linear-gradient(135deg, rgba(11, 43, 138, 0.5) 0%, rgba(6, 28, 50, 0.7) 100%);
-  border-radius: 16px;
-  padding: 40px;
-  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(96, 184, 255, 0.1);
-  animation: slideIn 0.3s ease;
-  color: #ffffff;
-  border: 1px solid rgba(96, 184, 255, 0.15);
-  margin-top: 20px;
+  margin-top: 0;
 }
 
 @keyframes slideIn {
@@ -203,19 +148,7 @@
 }
 
 .action-button {
-  padding: 14px 36px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 30px;
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
-  letter-spacing: 0.5px;
-  font-weight: 700;
+  margin-bottom: 18px;
 }
 
 .action-button:hover:not(:disabled) {
@@ -251,14 +184,14 @@
 .location-header {
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 2px solid rgba(96, 184, 255, 0.3);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
 .location-header h2 {
-  color: #60b8ff;
+  color: var(--text);
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -271,13 +204,12 @@
 }
 
 .weather-section h3 {
-  color: #e6f4ff;
+  color: var(--muted);
   margin-bottom: 20px;
   font-size: 1.3rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #60b8ff;
 }
 
 .weather-grid {
@@ -290,22 +222,21 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
-  background: linear-gradient(135deg, rgba(96, 184, 255, 0.1) 0%, rgba(96, 184, 255, 0.05) 100%);
-  border: 1px solid rgba(96, 184, 255, 0.3);
+  background: color-mix(in oklab, var(--card-solid) 55%, transparent);
+  border: 1px solid var(--border);
   border-radius: 12px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .weather-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(96, 184, 255, 0.6);
-  box-shadow: 0 8px 24px rgba(96, 184, 255, 0.2);
-  background: linear-gradient(135deg, rgba(96, 184, 255, 0.15) 0%, rgba(96, 184, 255, 0.08) 100%);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .weather-label {
-  color: #b0d4e3;
+  color: var(--muted);
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -314,7 +245,7 @@
 }
 
 .weather-value {
-  color: #60b8ff;
+  color: var(--text);
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.5px;
@@ -335,28 +266,15 @@
 }
 
 .form-col label {
-  color: #60b8ff;
-  font-weight: 700;
+  color: var(--muted);
+  font-weight: 800;
   font-size: 0.95rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .form-input {
-  padding: 12px 16px;
-  border-radius: 10px;
-  border: 2px solid rgba(96, 184, 255, 0.2);
-  background: rgba(8, 16, 51, 0.6);
-  color: #e6f4ff;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: rgba(96, 184, 255, 0.6);
-  box-shadow: 0 0 0 3px rgba(96, 184, 255, 0.1);
-  background: rgba(8, 16, 51, 0.8);
+  /* base input styling handled globally via `.input` */
 }
 
 /* Prediction Section */
@@ -365,7 +283,7 @@
 }
 
 .prediction-section h3 {
-  color: #60b8ff;
+  color: var(--muted);
   margin-bottom: 20px;
   font-size: 1.3rem;
   font-weight: 700;
@@ -378,11 +296,11 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   padding: 30px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 64, 175, 0.05) 100%);
+  background: color-mix(in oklab, var(--card-solid) 55%, transparent);
   border-left: 5px solid;
   border-radius: 12px;
   margin-bottom: 20px;
-  border: 1px solid rgba(96, 184, 255, 0.2);
+  border: 1px solid var(--border);
 }
 
 .risk-item {
@@ -392,7 +310,7 @@
 
 .risk-label {
   font-size: 0.9rem;
-  color: #b0d4e3;
+  color: var(--muted);
   margin-bottom: 8px;
   font-weight: 600;
   text-transform: uppercase;
@@ -402,27 +320,27 @@
 .risk-value {
   font-size: 2rem;
   font-weight: 800;
-  color: #60b8ff;
+  color: var(--text);
   letter-spacing: -0.5px;
 }
 
 .recommendation-card {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+  background: color-mix(in oklab, var(--warn) 10%, var(--card));
   padding: 24px;
   border-radius: 12px;
-  border-left: 4px solid #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-left: 4px solid var(--warn);
+  border: 1px solid color-mix(in oklab, var(--warn) 30%, var(--border));
 }
 
 .recommendation-card h4 {
-  color: #fbbf24;
+  color: var(--text);
   margin-bottom: 12px;
   font-size: 1.1rem;
   font-weight: 700;
 }
 
 .recommendation-card p {
-  color: #fef3c7;
+  color: var(--muted);
   line-height: 1.7;
 }
 
@@ -449,8 +367,8 @@
 
 .forecast-card {
   padding: 25px;
-  background: linear-gradient(135deg, rgba(11, 43, 138, 0.6) 0%, rgba(6, 28, 50, 0.8) 100%);
-  border: 2px solid rgba(96, 184, 255, 0.2);
+  background: color-mix(in oklab, var(--card-solid) 55%, transparent);
+  border: 1px solid var(--border);
   border-top: 4px solid;
   border-radius: 12px;
   transition: all 0.3s ease;
@@ -458,12 +376,12 @@
 
 .forecast-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 30px rgba(96, 184, 255, 0.2);
-  border-color: rgba(96, 184, 255, 0.5);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
 }
 
 .forecast-card h4 {
-  color: #60b8ff;
+  color: var(--text);
   margin-bottom: 20px;
   font-size: 1.2rem;
   font-weight: 700;
@@ -479,7 +397,7 @@
 }
 
 .forecast-item span:first-child {
-  color: #b0d4e3;
+  color: var(--muted);
   font-weight: 600;
 }
 
@@ -489,7 +407,7 @@
 }
 
 .forecast-probability {
-  color: #60b8ff;
+  color: var(--text);
   font-weight: 800;
   font-size: 1.1rem;
 }
@@ -497,7 +415,7 @@
 .raw-value {
   margin-left: 8px;
   font-size: 0.8rem;
-  color: rgba(230, 244, 255, 0.5);
+  color: var(--muted);
   font-weight: 500;
 }
 
@@ -515,10 +433,6 @@
 }
 
 @media (max-width: 768px) {
-  .tab-content {
-    padding: 20px;
-  }
-
   .weather-grid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
@@ -529,22 +443,19 @@
 
   .tabs {
     overflow-x: auto;
-  }
-
-  .app-title {
-    font-size: 1.5rem;
+    justify-content: flex-start;
   }
 }
 
 /* Multi-city scan adjustments */
 .tab-content .multi-city-scan {
-  margin: -40px -40px -40px -40px;
-  padding: 40px;
+  margin: 0;
+  padding: 0;
 }
 
 @media (max-width: 768px) {
   .tab-content .multi-city-scan {
-    margin: -40px -40px -40px -40px;
+    margin: 0;
     padding: 0;
   }
 }

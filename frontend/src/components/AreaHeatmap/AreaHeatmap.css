@@ -14,18 +14,18 @@
 
 .heatmap-result-wrapper {
   margin-top: 24px;
-  background: white;
+  background: var(--card);
   padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
 }
 
 .heatmap-legend {
   margin-top: 16px;
   padding: 12px;
-  background: #f8fafc;
-  border-radius: 8px;
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+  border-radius: 12px;
 }
 
 .heatmap-legend h4 {
@@ -44,7 +44,7 @@
   height: 12px;
   width: 100%;
   background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff0000);
-  border-radius: 4px;
+  border-radius: 999px;
 }
 
 .legend-labels {
@@ -53,4 +53,94 @@
   font-size: 12px;
   color: #64748b;
   font-weight: 500;
+}
+
+.area-map-wrapper {
+  position: relative;
+}
+
+.select-area-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 1000;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: #f9fafb;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(15, 118, 230, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.select-area-btn::before {
+  content: "▢";
+  font-size: 14px;
+}
+
+.select-area-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 35px rgba(15, 118, 230, 0.45);
+}
+
+.select-area-btn.active {
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  box-shadow: 0 14px 35px rgba(239, 68, 68, 0.45);
+}
+
+.select-area-btn.active::before {
+  content: "✕";
+}
+
+.select-hint {
+  position: absolute;
+  top: 56px;
+  right: 16px;
+  z-index: 900;
+  background: color-mix(in oklab, var(--card-solid) 90%, transparent);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  border-top-color: #3b82f6;
+  display: inline-block;
+  margin-right: 6px;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.heatmap-toast {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 40%, var(--border));
+  color: var(--text);
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heatmap-toast::before {
+  content: "✅";
 }

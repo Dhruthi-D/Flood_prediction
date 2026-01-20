@@ -301,15 +301,20 @@ export default function Dashboard() {
     <div className="dashboard">
       <div className="dashboard-container">
         {/* Welcome Section */}
-        <div className="welcome-section">
-          <div className="welcome-content">
-            <h2>Welcome to Flood Risk Analysis</h2>
-            
+        <div className="welcome-section card">
+          <div className="cardHeader">
+            <p className="cardTitle">Overview</p>
+          </div>
+          <div className="cardBody">
+            <div className="welcome-content">
+              <h2>Flood Risk Analysis Dashboard</h2>
+              <p>Run live predictions, forecasts, simulations, and explainability—all in one place.</p>
+            </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="tabs-container">
+        <div className="tabs-container card">
           <div className="tabs">
             <button
               className={`tab ${activeTab === "live" ? "active" : ""}`}
@@ -369,20 +374,25 @@ export default function Dashboard() {
         </div>
 
         {/* Location Selector Section */}
-        <div className="search-section">
-          <h3>📍 Choose Your Location</h3>
-          <LocationSelector
-            onLocationSelect={setLocation}
-            selectedLocation={location}
-          />
-          {error && <div className="error-message">{error}</div>}
+        <div className="search-section card">
+          <div className="cardHeader">
+            <p className="cardTitle">Location</p>
+          </div>
+          <div className="cardBody">
+            <LocationSelector onLocationSelect={setLocation} selectedLocation={location} />
+            {error && <div className="error-message alert">{error}</div>}
+          </div>
         </div>
 
         {/* Live Prediction Tab */}
         {activeTab === "live" && (
-          <div className="tab-content">
+          <div className="tab-content card">
+            <div className="cardHeader">
+              <p className="cardTitle">Live Prediction</p>
+            </div>
+            <div className="cardBody">
             <button 
-              className="action-button" 
+              className="action-button btn btnPrimary" 
               onClick={runLive}
               disabled={loading}
             >
@@ -443,7 +453,7 @@ export default function Dashboard() {
                   </div>
 
                   <button 
-                    className="action-button" 
+                    className="action-button btn btnPrimary" 
                     onClick={explainLivePrediction}
                     disabled={shapLoading}
                     style={{ marginTop: "16px", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
@@ -516,13 +526,18 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+          </div>
         )}
 
         {/* Forecast Tab */}
         {activeTab === "forecast" && (
-          <div className="tab-content">
+          <div className="tab-content card">
+            <div className="cardHeader">
+              <p className="cardTitle">3-Day Forecast</p>
+            </div>
+            <div className="cardBody">
             <button 
-              className="action-button" 
+              className="action-button btn btnPrimary" 
               onClick={runForecast}
               disabled={loading}
             >
@@ -562,76 +577,100 @@ export default function Dashboard() {
               </>
             )}
           </div>
+          </div>
         )}
 
         {/* Multi-City Scan Tab */}
         {activeTab === "multi-city" && (
-          <div className="tab-content">
+          <div className="tab-content card">
+            <div className="cardHeader">
+              <p className="cardTitle">Multi-City Scan</p>
+            </div>
+            <div className="cardBody">
             <MultiCityScan />
+          </div>
           </div>
         )}
 
         {/* Area Heatmap Tab */}
 {activeTab === "area-heatmap" && (
-  <div className="tab-content">
+  <div className="tab-content card">
+    <div className="cardHeader">
+      <p className="cardTitle">Area Heatmap</p>
+    </div>
+    <div className="cardBody">
     <AreaHeatmap />
+    </div>
   </div>
 )}
 
         {/* Simulation Tab */}
         {activeTab === "simulation" && (
-          <div className="tab-content">
+          <div className="tab-content card">
+            <div className="cardHeader">
+              <p className="cardTitle">Simulation</p>
+            </div>
+            <div className="cardBody">
             <Simulation />
+          </div>
           </div>
         )}
 
         {/* Explainability Tab */}
         {activeTab === "explainability" && (
-          <div className="tab-content">
+          <div className="tab-content card">
+            <div className="cardHeader">
+              <p className="cardTitle">Explainability</p>
+            </div>
+            <div className="cardBody">
             <Explainability />
+          </div>
           </div>
         )}
 
         {/* Custom Tab */}
         {activeTab === "custom" && (
-          <div className="tab-content">
-            <h3>Custom Prediction</h3>
+          <div className="tab-content card">
+            <div className="cardHeader">
+              <p className="cardTitle">Custom Prediction</p>
+            </div>
+            <div className="cardBody">
 
             <div className="custom-grid">
               <div className="form-col">
                 <label>Temperature (°C)</label>
-                <input className="form-input" value={form.temperature} onChange={(e) => handleFormChange("temperature", e.target.value)} />
+                <input className="form-input input" value={form.temperature} onChange={(e) => handleFormChange("temperature", e.target.value)} />
 
                 <label>Temp Max (°C)</label>
-                <input className="form-input" value={form.temperature_max} onChange={(e) => handleFormChange("temperature_max", e.target.value)} />
+                <input className="form-input input" value={form.temperature_max} onChange={(e) => handleFormChange("temperature_max", e.target.value)} />
 
                 <label>Temp Min (°C)</label>
-                <input className="form-input" value={form.temperature_min} onChange={(e) => handleFormChange("temperature_min", e.target.value)} />
+                <input className="form-input input" value={form.temperature_min} onChange={(e) => handleFormChange("temperature_min", e.target.value)} />
 
                 <label>Pressure (hPa)</label>
-                <input className="form-input" value={form.pressure} onChange={(e) => handleFormChange("pressure", e.target.value)} />
+                <input className="form-input input" value={form.pressure} onChange={(e) => handleFormChange("pressure", e.target.value)} />
               </div>
 
               <div className="form-col">
                 <label>Rainfall (mm)</label>
-                <input className="form-input" value={form.rainfall} onChange={(e) => handleFormChange("rainfall", e.target.value)} />
+                <input className="form-input input" value={form.rainfall} onChange={(e) => handleFormChange("rainfall", e.target.value)} />
 
                 <label>Humidity (%)</label>
-                <input className="form-input" value={form.humidity} onChange={(e) => handleFormChange("humidity", e.target.value)} />
+                <input className="form-input input" value={form.humidity} onChange={(e) => handleFormChange("humidity", e.target.value)} />
 
                 <label>Wind Speed (km/h)</label>
-                <input className="form-input" value={form.wind_speed} onChange={(e) => handleFormChange("wind_speed", e.target.value)} />
+                <input className="form-input input" value={form.wind_speed} onChange={(e) => handleFormChange("wind_speed", e.target.value)} />
 
                 <label>Rain Anomaly (optional)</label>
-                <input className="form-input" value={form.rain_anomaly} onChange={(e) => handleFormChange("rain_anomaly", e.target.value)} />
+                <input className="form-input input" value={form.rain_anomaly} onChange={(e) => handleFormChange("rain_anomaly", e.target.value)} />
 
                 <label>Temp Anomaly (optional)</label>
-                <input className="form-input" value={form.temp_anomaly} onChange={(e) => handleFormChange("temp_anomaly", e.target.value)} />
+                <input className="form-input input" value={form.temp_anomaly} onChange={(e) => handleFormChange("temp_anomaly", e.target.value)} />
               </div>
             </div>
 
             <div style={{ marginTop: 18 }}>
-              <button className="action-button" onClick={runCustomPrediction} disabled={loading}>
+              <button className="action-button btn btnPrimary" onClick={runCustomPrediction} disabled={loading}>
                 {loading ? "Running..." : "Run Custom Prediction"}
               </button>
             </div>
@@ -650,7 +689,7 @@ export default function Dashboard() {
                 </div>
 
                 <button 
-                  className="action-button" 
+                  className="action-button btn btnPrimary" 
                   onClick={explainCustomPrediction}
                   disabled={shapLoading}
                   style={{ marginTop: "16px", background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}
@@ -722,17 +761,23 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+          </div>
         )}
 
         {/* Chat Assistant Tab */}
         {activeTab === "chat" && (
-          <div className="tab-content" style={{ height: "calc(100vh - 250px)" }}>
+          <div className="tab-content card" style={{ height: "calc(100vh - 250px)" }}>
+            <div className="cardHeader">
+              <p className="cardTitle">Chat Assistant</p>
+            </div>
+            <div className="cardBody" style={{ height: "100%" }}>
             <ChatAssistant 
               prediction={live}
               shapExplanation={liveShapExplanation}
               simulation={null}
               location={location ? getPlaceString() : null}
             />
+            </div>
           </div>
         )}
       </div>
