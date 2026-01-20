@@ -277,7 +277,7 @@ export default function CustomPredictionPage() {
                 }}
               >
                 <div className="risk-item">
-                  <span className="risk-label">Risk Level</span>
+                  <span className="risk-label">Risk Level: </span>
                   <span
                     className="risk-value"
                     style={{
@@ -288,7 +288,7 @@ export default function CustomPredictionPage() {
                   </span>
                 </div>
                 <div className="risk-item">
-                  <span className="risk-label">Probability</span>
+                  <span className="risk-label">Probability: </span>
                   <span className="risk-value">
                     {(Number(customResult.probability) * 100).toFixed(2)}%
                   </span>
