@@ -139,78 +139,114 @@ export default function CustomPredictionPage() {
           <p className="cardTitle">Custom Prediction</p>
         </div>
         <div className="cardBody">
-          <div className="custom-grid">
-            <div className="form-col">
-              <label>Temperature (°C)</label>
+          <div className="custom-form-grid">
+            <div className="form-field-group">
+              <label htmlFor="temperature">Temperature (°C)</label>
               <input
+                id="temperature"
+                type="number"
                 className="form-input input"
                 value={form.temperature}
                 onChange={(e) =>
                   handleFormChange("temperature", e.target.value)
                 }
               />
+            </div>
 
-              <label>Temp Max (°C)</label>
+            <div className="form-field-group">
+              <label htmlFor="temperature_max">Temp Max (°C)</label>
               <input
+                id="temperature_max"
+                type="number"
                 className="form-input input"
                 value={form.temperature_max}
                 onChange={(e) =>
                   handleFormChange("temperature_max", e.target.value)
                 }
               />
+            </div>
 
-              <label>Temp Min (°C)</label>
+            <div className="form-field-group">
+              <label htmlFor="temperature_min">Temp Min (°C)</label>
               <input
+                id="temperature_min"
+                type="number"
                 className="form-input input"
                 value={form.temperature_min}
                 onChange={(e) =>
                   handleFormChange("temperature_min", e.target.value)
                 }
               />
+            </div>
 
-              <label>Pressure (hPa)</label>
+            <div className="form-field-group">
+              <label htmlFor="pressure">Pressure (hPa)</label>
               <input
+                id="pressure"
+                type="number"
                 className="form-input input"
                 value={form.pressure}
                 onChange={(e) => handleFormChange("pressure", e.target.value)}
               />
             </div>
 
-            <div className="form-col">
-              <label>Rainfall (mm)</label>
+            <div className="form-field-group">
+              <label htmlFor="rainfall">Rainfall (mm)</label>
               <input
+                id="rainfall"
+                type="number"
                 className="form-input input"
                 value={form.rainfall}
                 onChange={(e) => handleFormChange("rainfall", e.target.value)}
               />
+            </div>
 
-              <label>Humidity (%)</label>
+            <div className="form-field-group">
+              <label htmlFor="humidity">Humidity (%)</label>
               <input
+                id="humidity"
+                type="number"
                 className="form-input input"
                 value={form.humidity}
                 onChange={(e) => handleFormChange("humidity", e.target.value)}
               />
+            </div>
 
-              <label>Wind Speed (km/h)</label>
+            <div className="form-field-group">
+              <label htmlFor="wind_speed">Wind Speed (km/h)</label>
               <input
+                id="wind_speed"
+                type="number"
                 className="form-input input"
                 value={form.wind_speed}
                 onChange={(e) =>
                   handleFormChange("wind_speed", e.target.value)
                 }
               />
+            </div>
+          </div>
 
-              <label>Rain Anomaly (optional)</label>
+          <div className="custom-form-grid optional-fields">
+            <div className="form-field-group">
+              <label htmlFor="rain_anomaly">Rain Anomaly (Optional)</label>
               <input
+                id="rain_anomaly"
+                type="number"
+                step="0.1"
                 className="form-input input"
                 value={form.rain_anomaly}
                 onChange={(e) =>
                   handleFormChange("rain_anomaly", e.target.value)
                 }
               />
+            </div>
 
-              <label>Temp Anomaly (optional)</label>
+            <div className="form-field-group">
+              <label htmlFor="temp_anomaly">Temp Anomaly (Optional)</label>
               <input
+                id="temp_anomaly"
+                type="number"
+                step="0.1"
                 className="form-input input"
                 value={form.temp_anomaly}
                 onChange={(e) =>
@@ -220,7 +256,7 @@ export default function CustomPredictionPage() {
             </div>
           </div>
 
-          <div style={{ marginTop: 18 }}>
+          <div className="form-submit-container">
             <button
               className="action-button btn btnPrimary"
               onClick={runCustomPrediction}
@@ -255,9 +291,6 @@ export default function CustomPredictionPage() {
                   <span className="risk-label">Probability</span>
                   <span className="risk-value">
                     {(Number(customResult.probability) * 100).toFixed(2)}%
-                    <span className="raw-value">
-                      {Number(customResult.probability)}
-                    </span>
                   </span>
                 </div>
               </div>

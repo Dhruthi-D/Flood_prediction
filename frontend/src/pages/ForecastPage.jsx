@@ -108,7 +108,7 @@ export default function ForecastPage() {
                   >
                     <h4>{f.day}</h4>
                     <div className="forecast-item">
-                      <span>Risk Level:</span>
+                      <span>Risk Level: </span>
                       <span
                         className="forecast-risk"
                         style={{ color: getRiskColor(f.risk) }}
@@ -117,12 +117,9 @@ export default function ForecastPage() {
                       </span>
                     </div>
                     <div className="forecast-item">
-                      <span>Probability:</span>
+                      <span>Probability: </span>
                       <span className="forecast-probability">
                         {(Number(f.probability) * 100).toFixed(2)}%
-                        <span className="raw-value">
-                          {Number(f.probability)}
-                        </span>
                       </span>
                     </div>
                   </div>

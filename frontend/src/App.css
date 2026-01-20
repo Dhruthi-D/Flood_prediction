@@ -175,15 +175,14 @@
 }
 
 .headerLocationInner {
-  max-width: 720px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
 }
 
 .appContent {
   padding: 16px 24px 32px;
-  max-width: var(--container);
-  margin: 0 auto;
   width: 100%;
+  max-width: none;
 }
 
 .pageHeader {
@@ -208,6 +207,17 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+}
+
+/* Ensure cards take full available width */
+.dashboard-page > .card {
+  width: 100%;
+}
+
+/* Match location card width with prediction card */
+.headerLocationInner.card {
+  width: 100%;
 }
 
 .mobileOnly {

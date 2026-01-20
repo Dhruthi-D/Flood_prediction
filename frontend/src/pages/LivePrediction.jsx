@@ -207,25 +207,25 @@ export default function LivePredictionPage() {
                   <h3>Weather Conditions</h3>
                   <div className="weather-grid">
                     <div className="weather-card">
-                      <span className="weather-label">Temperature</span>
+                      <span className="weather-label">Temperature: </span>
                       <span className="weather-value">
                         {live.weather.temperature}°C
                       </span>
                     </div>
                     <div className="weather-card">
-                      <span className="weather-label">Humidity</span>
+                      <span className="weather-label">Humidity: </span>
                       <span className="weather-value">
                         {live.weather.humidity}%
                       </span>
                     </div>
                     <div className="weather-card">
-                      <span className="weather-label">Rainfall</span>
+                      <span className="weather-label">Rainfall: </span>
                       <span className="weather-value">
-                        {live.weather.rainfall}mm
+                        {live.weather.rainfall} mm
                       </span>
                     </div>
                     <div className="weather-card">
-                      <span className="weather-label">Wind Speed</span>
+                      <span className="weather-label">Wind Speed: </span>
                       <span className="weather-value">
                         {live.weather.wind_speed} km/h
                       </span>
@@ -241,7 +241,7 @@ export default function LivePredictionPage() {
                   style={{ borderLeftColor: getRiskColor(live.risk_level) }}
                 >
                   <div className="risk-item">
-                    <span className="risk-label">Risk Level</span>
+                    <span className="risk-label">Risk Level: </span>
                     <span
                       className="risk-value"
                       style={{ color: getRiskColor(live.risk_level) }}
@@ -250,8 +250,14 @@ export default function LivePredictionPage() {
                     </span>
                   </div>
                   <div className="risk-item">
-                    <span className="risk-label">Probability</span>
-                    <span className="risk-value">{live.probability}%</span>
+                    <span className="risk-label">Probability: </span>
+                    <span className="risk-value">
+                      {typeof live.probability === 'number' 
+                        ? (live.probability * 100).toFixed(2) + '%'
+                        : live.probability?.toString().includes('%')
+                          ? live.probability
+                          : (parseFloat(live.probability || 0) * 100).toFixed(2) + '%'}
+                    </span>
                   </div>
                 </div>
 

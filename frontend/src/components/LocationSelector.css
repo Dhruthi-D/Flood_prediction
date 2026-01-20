@@ -19,6 +19,8 @@
 
 .location-input-group {
   position: relative;
+  overflow: visible;
+  z-index: 1;
 }
 
 /* INPUT */
@@ -92,7 +94,7 @@
   border-radius: 14px;
   max-height: 280px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 9999;
   box-shadow: var(--shadow-md);
   animation: dropdownFade 0.25s ease;
   border: 1px solid var(--border);
@@ -213,7 +215,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   box-shadow: var(--shadow-md);
-  z-index: 1001;
+  z-index: 10000;
   font-size: 13px;
   line-height: 1.6;
 }

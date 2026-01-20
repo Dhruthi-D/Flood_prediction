@@ -214,8 +214,14 @@
 
 .weather-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .weather-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .weather-card {
@@ -238,7 +244,7 @@
 .weather-label {
   color: var(--muted);
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -247,11 +253,84 @@
 .weather-value {
   color: var(--text);
   font-size: 1.8rem;
-  font-weight: 800;
+  font-weight: 300;
   letter-spacing: -0.5px;
 }
 
-/* Custom Grid */
+/* Custom Form Grid - 2-column responsive layout */
+.custom-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px 20px;
+  margin-bottom: 24px;
+}
+
+.form-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-field-group label {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0;
+}
+
+.form-field-group .input {
+  height: 44px;
+  width: 100%;
+}
+
+.form-section-divider {
+  margin: 32px 0 20px;
+  position: relative;
+  text-align: center;
+}
+
+.form-section-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider-text {
+  position: relative;
+  padding: 0 16px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.optional-fields {
+  margin-bottom: 32px;
+}
+
+.form-submit-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+/* Responsive: Stack on mobile/tablet */
+@media (max-width: 768px) {
+  .custom-form-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Legacy support */
 .custom-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -293,9 +372,9 @@
 
 .risk-card {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  padding: 30px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  padding: 24px;
   background: color-mix(in oklab, var(--card-solid) 55%, transparent);
   border-left: 5px solid;
   border-radius: 12px;
@@ -306,22 +385,33 @@
 .risk-item {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .risk-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
 }
 
 .risk-label {
-  font-size: 0.9rem;
   color: var(--muted);
-  margin-bottom: 8px;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: 8px;
 }
 
 .risk-value {
-  font-size: 2rem;
+  font-size: 1.875rem;
   font-weight: 800;
   color: var(--text);
   letter-spacing: -0.5px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: nowrap;
 }
 
 .recommendation-card {
@@ -413,10 +503,7 @@
 }
 
 .raw-value {
-  margin-left: 8px;
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-weight: 500;
+  display: none; /* Hide raw decimal values - only show formatted percentages */
 }
 
 /* Coming Soon */
